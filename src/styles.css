@@ -1,1 +1,153 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --secondary: #10B981;
+  --danger: #EF4444;
+  --danger-hover: #DC2626;
+  --background: #F3F4F6;
+  --surface: #FFFFFF;
+  --text-main: #111827;
+  --text-muted: #6B7280;
+  --border: #E5E7EB;
+  --radius: 12px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--background);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Base App Layout */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: var(--shadow-sm);
+}
+
+.glass-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.content-wrapper {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* UI Components */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  text-decoration: none;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+}
+.btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+.btn-secondary {
+  background-color: white;
+  color: var(--text-main);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { background-color: var(--background); }
+
+.btn-danger {
+  background-color: var(--danger);
+  color: white;
+}
+.btn-danger:hover { background-color: var(--danger-hover); transform: translateY(-1px); }
+
+/* Forms */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+.form-control.is-invalid {
+  border-color: var(--danger);
+}
+.error-text {
+  color: var(--danger);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}

@@ -1,0 +1,64 @@
+<div class="card animate-fade-in">
+  <div class="header-actions">
+    <h2>Danh sách Sinh viên</h2>
+    <a routerLink="/add" class="btn btn-primary">
+      <span>+</span> Thêm mới
+    </a>
+  </div>
+
+  <!-- Search bar -->
+  <div class="search-bar">
+    <input
+      type="text"
+      class="form-control search-input"
+      placeholder="🔍 Tìm theo MSV hoặc Họ tên..."
+      [(ngModel)]="searchKeyword"
+      (keyup.enter)="onSearch()">
+    <button class="btn btn-primary" (click)="onSearch()">Tìm kiếm</button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th class="sortable" (click)="onSort('studentCode')">
+            MSV <span class="sort-icon">{{ getSortIcon('studentCode') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('name')">
+            Họ tên <span class="sort-icon">{{ getSortIcon('name') }}</span>
+          </th>
+          <th>Email</th>
+          <th>Ngày sinh</th>
+          <th>Địa chỉ</th>
+          <th class="text-right">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (student of students; track student.id) {
+          <tr>
+            <td>{{ student.id }}</td>
+            <td><span class="badge">{{ student.studentCode }}</span></td>
+            <td class="font-medium">{{ student.name }}</td>
+            <td>{{ student.email }}</td>
+            <td>{{ student.dob }}</td>
+            <td>{{ student.address }}</td>
+            <td class="actions-cell">
+              <a [routerLink]="['/edit', student.id]" class="btn-icon text-primary">Sửa</a>
+              <button (click)="deleteStudent(student.id)" class="btn-icon text-danger">Xóa</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty-state">
+              <div class="empty-content">
+                <div class="empty-icon">📭</div>
+                <p>Không tìm thấy sinh viên nào.</p>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
