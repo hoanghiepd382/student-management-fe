@@ -1,8 +1,32 @@
-<main class="app-container">
-  <div class="glass-header">
-    <h1><i class="icon-student">🎓</i> Hệ thống quản lý sinh viên</h1>
-  </div>
-  <div class="content-wrapper">
-    <router-outlet></router-outlet>
-  </div>
-</main>
+<div class="layout-wrapper">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Hệ Thống</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a routerLink="/students" routerLinkActive="active" class="nav-item">
+        <i class="icon-student"></i> Quản lý Sinh viên
+      </a>
+      <a routerLink="/semesters" routerLinkActive="active" class="nav-item">
+        <i class="icon-semester"></i> Quản lý Học kỳ
+      </a>
+      <a routerLink="/subjects" routerLinkActive="active" class="nav-item">
+        <i class="icon-subject"></i> Quản lý Môn học
+      </a>
+      <a routerLink="/classes" routerLinkActive="active" class="nav-item">
+        <i class="icon-class"></i> Quản lý Lớp HP
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="glass-header">
+      <h1><i class="icon-student"></i> Quản lý sinh viên</h1>
+    </div>
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

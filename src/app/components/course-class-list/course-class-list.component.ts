@@ -2,18 +2,17 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Student } from '../../models/student';
-import { StudentService } from '../../services/student.service';
+import { CourseClassService, CourseClass } from '../../services/course-class.service';
 
 @Component({
-  selector: 'app-student-list',
+  selector: 'app-course-class-list',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
-  templateUrl: './student-list.component.html',
-  styleUrls: ['./student-list.component.css']
+  templateUrl: './course-class-list.component.html',
+  styleUrls: ['./course-class-list.component.css']
 })
-export class StudentListComponent implements OnInit {
-  students: Student[] = [];
+export class CourseClassListComponent implements OnInit {
+  classes: CourseClass[] = [];
   searchKeyword = '';
   sortField = '';
   sortDirection: 'asc' | 'desc' = 'asc';
@@ -23,18 +22,18 @@ export class StudentListComponent implements OnInit {
   totalItems = 0;
   totalPages = 0;
 
-  private studentService = inject(StudentService);
+  private courseClassService = inject(CourseClassService);
   private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
-    this.loadStudents();
+    this.loadClasses();
   }
 
-  loadStudents(): void {
+  loadClasses(): void {
     let filter = '';
     if (this.searchKeyword.trim()) {
       const keyword = this.searchKeyword.trim();
-      filter = `name ~~ '${keyword}' or studentCode ~~ '${keyword}'`;
+      filter = `groupName ~~ '${keyword}'`;
     }
 
     let sort = '';
@@ -42,33 +41,27 @@ export class StudentListComponent implements OnInit {
       sort = `${this.sortField},${this.sortDirection}`;
     }
 
-    this.studentService.getStudents({
-      filter,
-      sort,
+    this.courseClassService.getCourseClasses({
+      filter, sort,
       page: this.currentPage,
       size: this.pageSize
     }).subscribe({
       next: (res) => {
         const list = res?.data?.result ?? [];
-        this.students = [...list];
-
+        this.classes = [...list];
         if (res?.data?.meta) {
           const meta = res.data.meta;
           this.totalItems = meta.total;
           this.totalPages = meta.pages;
           this.currentPage = meta.page;
         }
-
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error loading students', err)
+      error: (err) => console.error('Error loading course classes', err)
     });
   }
 
-  onSearch(): void {
-    this.currentPage = 1;
-    this.loadStudents();
-  }
+  onSearch(): void { this.currentPage = 1; this.loadClasses(); }
 
   onSort(field: string): void {
     if (this.sortField === field) {
@@ -78,35 +71,26 @@ export class StudentListComponent implements OnInit {
       this.sortDirection = 'asc';
     }
     this.currentPage = 1;
-    this.loadStudents();
+    this.loadClasses();
   }
 
   onPageChange(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
-      this.loadStudents();
+      this.loadClasses();
       window.scrollTo(0, 0);
     }
   }
 
-  onPageSizeChange(): void {
-    this.currentPage = 1;
-    this.loadStudents();
-  }
+  onPageSizeChange(): void { this.currentPage = 1; this.loadClasses(); }
 
   getPagesArray(): number[] {
     const pages = [];
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(this.totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) start = Math.max(1, end - maxVisible + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
     return pages;
   }
 
@@ -115,12 +99,11 @@ export class StudentListComponent implements OnInit {
     return this.sortDirection === 'asc' ? '↑' : '↓';
   }
 
-  deleteStudent(id: number | undefined): void {
-    if (!id) return;
-    if (confirm('Bạn có chắc chắn muốn xóa sinh viên này?')) {
-      this.studentService.deleteStudent(id).subscribe({
-        next: () => this.loadStudents(),
-        error: (err) => console.error('Error deleting student', err)
+  deleteClass(id: number): void {
+    if (confirm('Bạn có chắc chắn muốn xóa lớp học phần này?')) {
+      this.courseClassService.deleteCourseClass(id).subscribe({
+        next: () => this.loadClasses(),
+        error: (err) => alert('Lỗi khi xóa: ' + err.message)
       });
     }
   }

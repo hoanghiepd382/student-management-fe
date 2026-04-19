@@ -1,0 +1,68 @@
+<div class="card form-container animate-fade-in">
+  <div class="form-header">
+    <h2>{{ isEditMode ? 'Sửa lớp học phần' : 'Thêm mới lớp học phần' }}</h2>
+    <a routerLink="/classes" class="btn btn-secondary">Quay lại danh sách</a>
+  </div>
+
+  @if (submitError) {
+    <div class="alert-error-banner" role="alert">
+      <strong>Lỗi:</strong> <span>{{ submitError }}</span>
+    </div>
+  }
+
+  <form [formGroup]="classForm" (ngSubmit)="onSubmit()">
+    <div class="form-row">
+      <div class="form-group half">
+        <label for="subjectId">Môn học</label>
+        <select id="subjectId" formControlName="subjectId" class="form-control"
+          [ngClass]="{'is-invalid': classForm.get('subjectId')?.invalid && classForm.get('subjectId')?.touched}">
+          <option [ngValue]="null" disabled>-- Chọn môn học --</option>
+          @for (sub of subjects; track sub.id) {
+            <option [ngValue]="sub.id">{{ sub.subjectName }} ({{ sub.subjectCode }})</option>
+          }
+        </select>
+        @if (classForm.get('subjectId')?.invalid && classForm.get('subjectId')?.touched) {
+          <span class="error-text">Vui lòng chọn môn học</span>
+        }
+      </div>
+
+      <div class="form-group half">
+        <label for="semesterId">Học kỳ</label>
+        <select id="semesterId" formControlName="semesterId" class="form-control"
+          [ngClass]="{'is-invalid': classForm.get('semesterId')?.invalid && classForm.get('semesterId')?.touched}">
+          <option [ngValue]="null" disabled>-- Chọn học kỳ --</option>
+          @for (sem of semesters; track sem.id) {
+            <option [ngValue]="sem.id">{{ sem.semesterName }} - {{ sem.academicYear }}</option>
+          }
+        </select>
+        @if (classForm.get('semesterId')?.invalid && classForm.get('semesterId')?.touched) {
+          <span class="error-text">Vui lòng chọn học kỳ</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group half">
+        <label for="groupName">Tên nhóm</label>
+        <input type="text" id="groupName" formControlName="groupName" class="form-control"
+          [ngClass]="{'is-invalid': classForm.get('groupName')?.invalid && classForm.get('groupName')?.touched}"
+          placeholder="e.g. 01">
+        @if (classForm.get('groupName')?.invalid && classForm.get('groupName')?.touched) {
+          <span class="error-text">Vui lòng điền tên nhóm</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary"
+        [disabled]="(classForm.pristine && isEditMode) || classForm.invalid || isSubmitting">
+        @if (isSubmitting) {
+          <span class="spinner" aria-hidden="true"></span>
+          <span>Đang xử lý...</span>
+        } @else {
+          {{ isEditMode ? 'Cập nhật lớp học phần' : 'Lưu lớp học phần' }}
+        }
+      </button>
+    </div>
+  </form>
+</div>

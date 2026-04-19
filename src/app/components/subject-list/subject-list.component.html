@@ -1,0 +1,81 @@
+<div class="card animate-fade-in">
+  <div class="header-actions">
+    <h2>Danh sách Môn học</h2>
+    <a routerLink="/subjects/new" class="btn btn-primary">
+      <span>+</span> Thêm mới
+    </a>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" class="form-control search-input" placeholder="Tìm theo Mã môn hoặc Tên môn..."
+      [(ngModel)]="searchKeyword" (keyup.enter)="onSearch()">
+    <button class="btn btn-primary" (click)="onSearch()">Tìm kiếm</button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th class="sortable" (click)="onSort('subjectCode')">
+            Mã môn <span class="sort-icon">{{ getSortIcon('subjectCode') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('subjectName')">
+            Tên môn học <span class="sort-icon">{{ getSortIcon('subjectName') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('credit')">
+            Số tín chỉ <span class="sort-icon">{{ getSortIcon('credit') }}</span>
+          </th>
+          <th class="text-right">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (sub of subjects; track sub.id) {
+        <tr>
+          <td>{{ sub.id }}</td>
+          <td><span class="badge">{{ sub.subjectCode }}</span></td>
+          <td class="font-medium">{{ sub.subjectName }}</td>
+          <td>{{ sub.credit }} TC</td>
+          <td class="actions-cell">
+            <a [routerLink]="['/subjects', sub.id, 'edit']" class="btn-icon text-primary">Sửa</a>
+            <button (click)="deleteSubject(sub.id)" class="btn-icon text-danger">Xóa</button>
+          </td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="5" class="empty-state">
+            <div class="empty-content">
+              <div class="empty-icon">📭</div>
+              <p>Không tìm thấy môn học nào.</p>
+            </div>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-footer">
+    <div class="page-size-container">
+      Hiển thị:
+      <select class="form-control page-size-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="20">20</option>
+        <option [ngValue]="50">50</option>
+      </select>
+      bản ghi / trang
+    </div>
+    <div class="pagination-info">
+      Đang xem {{ subjects.length > 0 ? (currentPage - 1) * pageSize + 1 : 0 }}
+      - {{ (currentPage - 1) * pageSize + subjects.length }}
+      trong tổng số {{ totalItems }} bản ghi
+    </div>
+    <div class="pagination-controls">
+      <button class="btn-pagination" [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">&laquo;</button>
+      @for (p of getPagesArray(); track p) {
+        <button class="btn-pagination" [class.active]="p === currentPage" (click)="onPageChange(p)">{{ p }}</button>
+      }
+      <button class="btn-pagination" [disabled]="currentPage === totalPages || totalPages === 0" (click)="onPageChange(currentPage + 1)">&raquo;</button>
+    </div>
+  </div>
+</div>

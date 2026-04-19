@@ -1,0 +1,87 @@
+<div *ngIf="errorMessage" class="alert alert-danger mx-3 mt-3">
+  {{ errorMessage }}
+</div>
+
+<div class="gradebook-container animate-fade-in">
+  <div class="header-actions">
+    <div class="flex-row">
+      <a routerLink="/students" class="btn btn-secondary back-btn">&laquo; Quay lại</a>
+      <h2>Sổ điểm: <span class="text-primary">{{ student?.name }}</span>
+        <small>({{ student?.studentCode }})</small></h2>
+    </div>
+  </div>
+
+  <div class="filters-container card mt-4">
+    <div class="filter-group">
+      <label>Học kỳ:</label>
+      <select class="form-control" [(ngModel)]="selectedSemesterId" (change)="onSemesterChange()"
+        [disabled]="isLoading || semesters.length === 0">
+        <option [ngValue]="null" disabled *ngIf="semesters.length === 0">Không có học kỳ nào</option>
+        <option *ngFor="let sem of semesters" [ngValue]="sem.id">{{ sem.semesterName }} - {{ sem.academicYear }}</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Lớp học phần:</label>
+      <select class="form-control" [(ngModel)]="selectedClassId" (change)="onClassChange()"
+        [disabled]="isLoadingClasses || classes.length === 0 || !selectedSemesterId">
+        <option [ngValue]="null" disabled>
+          {{ classes.length === 0 ? '--- Không có lớp ---' : '--- Chọn lớp học ---' }}
+        </option>
+        <option *ngFor="let cls of classes" [ngValue]="cls.courseClassId">{{ cls.subject.subjectName }} ({{ cls.groupName }})</option>
+      </select>
+      <span *ngIf="isLoadingClasses" class="loading-spinner">⏳</span>
+    </div>
+  </div>
+
+  <div class="grade-viewer mt-4" *ngIf="gradeDetail">
+    <div class="card grade-card">
+      <div class="card-header flex-row space-between">
+        <h3 style="margin:0;">Điểm học phần: {{ gradeDetail.courseClass.subject.subjectName }}</h3>
+        <span class="badge badge-info">{{ gradeDetail.courseClass.subject.credit }} Tín chỉ</span>
+      </div>
+
+      <div class="card-body">
+        <div class="grade-grid">
+          <div class="grade-item">
+            <span class="grade-label">Chuyên cần (10%)</span>
+            <span class="grade-value">{{ gradeDetail.attendanceScore | number:'1.0-1' }}</span>
+          </div>
+          <div class="grade-item">
+            <span class="grade-label">Giữa kỳ (20%)</span>
+            <span class="grade-value">{{ gradeDetail.midtermScore | number:'1.0-1' }}</span>
+          </div>
+          <div class="grade-item">
+            <span class="grade-label">Kiểm tra 1 (10%)</span>
+            <span class="grade-value">{{ gradeDetail.test1Score | number:'1.0-1' }}</span>
+          </div>
+          <div class="grade-item">
+            <span class="grade-label">Kiểm tra 2 (10%)</span>
+            <span class="grade-value">{{ gradeDetail.test2Score | number:'1.0-1' }}</span>
+          </div>
+          <div class="grade-item highlight">
+            <span class="grade-label">Cuối kỳ (50%)</span>
+            <span class="grade-value">{{ gradeDetail.finalScore | number:'1.0-1' }}</span>
+          </div>
+        </div>
+
+        <div class="grade-summary mt-4">
+          <div class="total-score text-center">
+            <span style="font-size: 1.2rem; margin-right: 15px;">Tổng kết môn:</span>
+            <strong class="score-final" [ngClass]="{'pass': calculateAverage()! >= '4.0', 'fail': calculateAverage()! < '4.0'}">
+              {{ calculateAverage() }}
+            </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state mt-4 card" *ngIf="!gradeDetail && selectedClassId && !isLoadingGrade && !errorMessage">
+    <p>Chưa có dữ liệu điểm cho lớp học phần này.</p>
+  </div>
+</div>
+
+<div *ngIf="isLoading && !student" class="loading-overlay">
+  <div class="spinner"></div>
+</div>

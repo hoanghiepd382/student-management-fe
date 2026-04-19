@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Student } from '../models/student';
-import { RestResponse, ResultPaginationDTO, ResUploadFileDTO } from '../models/rest.response';
+import { RestResponse, ResultPaginationDTO, ResUploadFileDTO, Semester, ClassSubjectDTO, FetchGradeDTO } from '../models/rest.response';
 
 @Injectable({
   providedIn: 'root'
@@ -49,5 +49,17 @@ export class StudentService {
     formData.append('file', file);
     formData.append('folder', folder);
     return this.http.post<RestResponse<ResUploadFileDTO>>(`http://localhost:8080/files`, formData);
+  }
+
+  getSemestersByStudent(studentId: number): Observable<RestResponse<Semester[]>> {
+    return this.http.get<RestResponse<Semester[]>>(`${this.apiUrl}/${studentId}/gradebook/semesters`);
+  }
+
+  getClassesByStudentAndSemester(studentId: number, semesterId: number): Observable<RestResponse<ClassSubjectDTO[]>> {
+    return this.http.get<RestResponse<ClassSubjectDTO[]>>(`${this.apiUrl}/${studentId}/gradebook/semesters/${semesterId}/subjects`);
+  }
+
+  getGradeDetail(studentId: number, courseClassId: number): Observable<RestResponse<FetchGradeDTO>> {
+    return this.http.get<RestResponse<FetchGradeDTO>>(`${this.apiUrl}/${studentId}/gradebook/course-classes/${courseClassId}`);
   }
 }

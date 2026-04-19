@@ -1,0 +1,59 @@
+<div class="card form-container animate-fade-in">
+  <div class="form-header">
+    <h2>{{ isEditMode ? 'Sửa thông tin môn học' : 'Thêm mới môn học' }}</h2>
+    <a routerLink="/subjects" class="btn btn-secondary">Quay lại danh sách</a>
+  </div>
+
+  @if (submitError) {
+    <div class="alert-error-banner" role="alert">
+      <strong>Lỗi:</strong> <span>{{ submitError }}</span>
+    </div>
+  }
+
+  <form [formGroup]="subjectForm" (ngSubmit)="onSubmit()">
+    <div class="form-row">
+      <div class="form-group half">
+        <label for="subjectCode">Mã môn học</label>
+        <input type="text" id="subjectCode" formControlName="subjectCode" class="form-control"
+          [ngClass]="{'is-invalid': subjectForm.get('subjectCode')?.invalid && subjectForm.get('subjectCode')?.touched}"
+          placeholder="e.g. INT1304">
+        @if (subjectForm.get('subjectCode')?.invalid && subjectForm.get('subjectCode')?.touched) {
+          <span class="error-text">Vui lòng điền Mã môn học</span>
+        }
+      </div>
+
+      <div class="form-group half">
+        <label for="subjectName">Tên môn học</label>
+        <input type="text" id="subjectName" formControlName="subjectName" class="form-control"
+          [ngClass]="{'is-invalid': subjectForm.get('subjectName')?.invalid && subjectForm.get('subjectName')?.touched}"
+          placeholder="e.g. Cơ sở dữ liệu">
+        @if (subjectForm.get('subjectName')?.invalid && subjectForm.get('subjectName')?.touched) {
+          <span class="error-text">Vui lòng điền Tên môn học</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group half">
+        <label for="credit">Số tín chỉ</label>
+        <input type="number" id="credit" formControlName="credit" class="form-control" min="1"
+          [ngClass]="{'is-invalid': subjectForm.get('credit')?.invalid && subjectForm.get('credit')?.touched}">
+        @if (subjectForm.get('credit')?.invalid && subjectForm.get('credit')?.touched) {
+          <span class="error-text">Số tín chỉ phải ≥ 1</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary"
+        [disabled]="(subjectForm.pristine && isEditMode) || subjectForm.invalid || isSubmitting">
+        @if (isSubmitting) {
+          <span class="spinner" aria-hidden="true"></span>
+          <span>Đang xử lý...</span>
+        } @else {
+          {{ isEditMode ? 'Cập nhật môn học' : 'Lưu môn học' }}
+        }
+      </button>
+    </div>
+  </form>
+</div>

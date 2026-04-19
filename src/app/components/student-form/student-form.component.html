@@ -1,33 +1,40 @@
 <div class="card form-container animate-fade-in">
   <div class="form-header">
     <h2>{{ isEditMode ? 'Sửa thông tin sinh viên' : 'Thêm mới sinh viên' }}</h2>
-    <a routerLink="/" class="btn btn-secondary">
+    <a routerLink="/students" class="btn btn-secondary">
       Quay lại danh sách
     </a>
   </div>
 
+  @if (submitError) {
+    <div class="alert-error-banner" role="alert">
+      <strong>Lỗi:</strong>
+      <span>{{ submitError }}</span>
+    </div>
+  }
+
   <form [formGroup]="studentForm" (ngSubmit)="onSubmit()">
     <!-- Avatar upload section -->
     <div class="avatar-upload-container">
-      <div class="avatar-preview" (click)="fileInput.click()">
+      <div class="avatar-preview" [class.disabled]="isSubmitting" (click)="!isSubmitting && fileInput.click()">
         <img [src]="imagePreview || 'https://www.w3schools.com/howto/img_avatar.png'" alt="Avatar Preview">
         <div class="avatar-overlay">
           <span>Chọn ảnh</span>
         </div>
       </div>
-      <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" hidden>
+      <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" [disabled]="isSubmitting" hidden>
     </div>
 
     <div class="form-row">
       <div class="form-group half">
         <label for="studentCode">Mã Sinh Viên</label>
-        <input 
-          type="text" 
-          id="studentCode" 
-          formControlName="studentCode" 
-          class="form-control" 
+        <input
+          type="text"
+          id="studentCode"
+          formControlName="studentCode"
+          class="form-control"
           [ngClass]="{'is-invalid': studentForm.get('studentCode')?.invalid && studentForm.get('studentCode')?.touched}"
-          placeholder="e.g. SV001">
+          placeholder="e.g. B22DCCN001">
         @if (studentForm.get('studentCode')?.invalid && studentForm.get('studentCode')?.touched) {
           <span class="error-text">Vui lòng điền MSV</span>
         }
@@ -35,11 +42,11 @@
 
       <div class="form-group half">
         <label for="name">Họ và Tên</label>
-        <input 
-          type="text" 
-          id="name" 
-          formControlName="name" 
-          class="form-control" 
+        <input
+          type="text"
+          id="name"
+          formControlName="name"
+          class="form-control"
           [ngClass]="{'is-invalid': studentForm.get('name')?.invalid && studentForm.get('name')?.touched}"
           placeholder="Nhập họ tên đầy đủ">
         @if (studentForm.get('name')?.invalid && studentForm.get('name')?.touched) {
@@ -51,11 +58,11 @@
     <div class="form-row">
       <div class="form-group half">
         <label for="email">Email</label>
-        <input 
-          type="email" 
-          id="email" 
-          formControlName="email" 
-          class="form-control" 
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="form-control"
           [ngClass]="{'is-invalid': studentForm.get('email')?.invalid && studentForm.get('email')?.touched}"
           placeholder="example@email.com">
         @if (studentForm.get('email')?.hasError('required') && studentForm.get('email')?.touched) {
@@ -68,10 +75,10 @@
 
       <div class="form-group half">
         <label for="dob">Ngày sinh</label>
-        <input 
-          type="date" 
-          id="dob" 
-          formControlName="dob" 
+        <input
+          type="date"
+          id="dob"
+          formControlName="dob"
           class="form-control">
       </div>
     </div>
@@ -88,18 +95,27 @@
 
       <div class="form-group half">
         <label for="address">Địa chỉ</label>
-        <input 
-          type="text" 
-          id="address" 
-          formControlName="address" 
-          class="form-control" 
+        <input
+          type="text"
+          id="address"
+          formControlName="address"
+          class="form-control"
           placeholder="Nhập địa chỉ">
       </div>
     </div>
 
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary" [disabled]="studentForm.pristine && !selectedFile && isEditMode">
-        {{ isEditMode ? 'Cập nhật sinh viên' : 'Lưu sinh viên' }}
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="(studentForm.pristine && !selectedFile && isEditMode) || isSubmitting"
+      >
+        @if (isSubmitting) {
+          <span class="spinner" aria-hidden="true"></span>
+          <span>Đang xử lý...</span>
+        } @else {
+          {{ isEditMode ? 'Cập nhật sinh viên' : 'Lưu sinh viên' }}
+        }
       </button>
     </div>
   </form>

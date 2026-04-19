@@ -21,3 +21,56 @@ export interface ResUploadFileDTO {
   fileName: string;
   uploadedAt: string;
 }
+
+export interface Semester {
+  id: number;
+  semesterName: string;
+  academicYear: string;
+}
+
+export interface Subject {
+  id: number;
+  subjectCode: string;
+  subjectName: string;
+  credit: number;
+}
+
+export interface ClassSubjectDTO {
+  courseClassId: number;
+  groupName: string;
+  subject: {
+    subjectId: number;
+    subjectCode: string;
+    subjectName: string;
+    credit: number;
+  };
+}
+
+export interface FetchGradeDTO {
+  id: number;
+  attendanceScore: number;
+  test1Score: number;
+  test2Score: number;
+  midtermScore: number;
+  finalScore: number;
+  student: {
+    id: number;
+    studentCode: string;
+    name: string;
+  };
+  courseClass: {
+    id: number;
+    groupName: string;
+    semester: {
+      id: number;
+      semesterName: string;
+      academicYear: string;
+    };
+    subject: {
+      id: number;
+      subjectCode: string;
+      subjectName: string;
+      credit: number;
+    };
+  };
+}

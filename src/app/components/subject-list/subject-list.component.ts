@@ -2,18 +2,18 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Student } from '../../models/student';
-import { StudentService } from '../../services/student.service';
+import { Subject } from '../../models/rest.response';
+import { SubjectService } from '../../services/subject.service';
 
 @Component({
-  selector: 'app-student-list',
+  selector: 'app-subject-list',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
-  templateUrl: './student-list.component.html',
-  styleUrls: ['./student-list.component.css']
+  templateUrl: './subject-list.component.html',
+  styleUrls: ['./subject-list.component.css']
 })
-export class StudentListComponent implements OnInit {
-  students: Student[] = [];
+export class SubjectListComponent implements OnInit {
+  subjects: Subject[] = [];
   searchKeyword = '';
   sortField = '';
   sortDirection: 'asc' | 'desc' = 'asc';
@@ -23,18 +23,18 @@ export class StudentListComponent implements OnInit {
   totalItems = 0;
   totalPages = 0;
 
-  private studentService = inject(StudentService);
+  private subjectService = inject(SubjectService);
   private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
-    this.loadStudents();
+    this.loadSubjects();
   }
 
-  loadStudents(): void {
+  loadSubjects(): void {
     let filter = '';
     if (this.searchKeyword.trim()) {
       const keyword = this.searchKeyword.trim();
-      filter = `name ~~ '${keyword}' or studentCode ~~ '${keyword}'`;
+      filter = `subjectName ~~ '${keyword}' or subjectCode ~~ '${keyword}'`;
     }
 
     let sort = '';
@@ -42,7 +42,7 @@ export class StudentListComponent implements OnInit {
       sort = `${this.sortField},${this.sortDirection}`;
     }
 
-    this.studentService.getStudents({
+    this.subjectService.getSubjects({
       filter,
       sort,
       page: this.currentPage,
@@ -50,24 +50,22 @@ export class StudentListComponent implements OnInit {
     }).subscribe({
       next: (res) => {
         const list = res?.data?.result ?? [];
-        this.students = [...list];
-
+        this.subjects = [...list];
         if (res?.data?.meta) {
           const meta = res.data.meta;
           this.totalItems = meta.total;
           this.totalPages = meta.pages;
           this.currentPage = meta.page;
         }
-
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error loading students', err)
+      error: (err) => console.error('Error loading subjects', err)
     });
   }
 
   onSearch(): void {
     this.currentPage = 1;
-    this.loadStudents();
+    this.loadSubjects();
   }
 
   onSort(field: string): void {
@@ -78,20 +76,20 @@ export class StudentListComponent implements OnInit {
       this.sortDirection = 'asc';
     }
     this.currentPage = 1;
-    this.loadStudents();
+    this.loadSubjects();
   }
 
   onPageChange(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
-      this.loadStudents();
+      this.loadSubjects();
       window.scrollTo(0, 0);
     }
   }
 
   onPageSizeChange(): void {
     this.currentPage = 1;
-    this.loadStudents();
+    this.loadSubjects();
   }
 
   getPagesArray(): number[] {
@@ -99,11 +97,9 @@ export class StudentListComponent implements OnInit {
     const maxVisiblePages = 5;
     let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(this.totalPages, startPage + maxVisiblePages - 1);
-
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
@@ -115,12 +111,12 @@ export class StudentListComponent implements OnInit {
     return this.sortDirection === 'asc' ? '↑' : '↓';
   }
 
-  deleteStudent(id: number | undefined): void {
+  deleteSubject(id: number | undefined): void {
     if (!id) return;
-    if (confirm('Bạn có chắc chắn muốn xóa sinh viên này?')) {
-      this.studentService.deleteStudent(id).subscribe({
-        next: () => this.loadStudents(),
-        error: (err) => console.error('Error deleting student', err)
+    if (confirm('Bạn có chắc chắn muốn xóa môn học này?')) {
+      this.subjectService.deleteSubject(id).subscribe({
+        next: () => this.loadSubjects(),
+        error: (err) => alert('Lỗi khi xóa môn học: ' + err.message)
       });
     }
   }

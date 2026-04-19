@@ -1,14 +1,14 @@
 <div class="card animate-fade-in">
   <div class="header-actions">
-    <h2>Danh sách Sinh viên</h2>
-    <a routerLink="/students/new" class="btn btn-primary">
+    <h2>Danh sách Học kỳ</h2>
+    <a routerLink="/semesters/new" class="btn btn-primary">
       <span>+</span> Thêm mới
     </a>
   </div>
 
   <!-- Search bar -->
   <div class="search-bar">
-    <input type="text" class="form-control search-input" placeholder="Tìm theo MSV hoặc Họ tên..."
+    <input type="text" class="form-control search-input" placeholder="Tìm theo Tên hoặc Năm học..."
       [(ngModel)]="searchKeyword" (keyup.enter)="onSearch()">
     <button class="btn btn-primary" (click)="onSearch()">Tìm kiếm</button>
   </div>
@@ -18,41 +18,32 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th class="sortable" (click)="onSort('studentCode')">
-            MSV <span class="sort-icon">{{ getSortIcon('studentCode') }}</span>
+          <th class="sortable" (click)="onSort('semesterName')">
+            Tên học kỳ <span class="sort-icon">{{ getSortIcon('semesterName') }}</span>
           </th>
-          <th class="sortable" (click)="onSort('name')">
-            Họ tên <span class="sort-icon">{{ getSortIcon('name') }}</span>
+          <th class="sortable" (click)="onSort('academicYear')">
+            Năm học <span class="sort-icon">{{ getSortIcon('academicYear') }}</span>
           </th>
-          <th>Email</th>
-          <th class="sortable" (click)="onSort('dob')">
-            Ngày sinh <span class="sort-icon">{{ getSortIcon('studentCode') }}</span>
-          </th>
-          <th>Địa chỉ</th>
           <th class="text-right">Hành động</th>
         </tr>
       </thead>
       <tbody>
-        @for (student of students; track student.id) {
+        @for (sem of semesters; track sem.id) {
         <tr>
-          <td>{{ student.id }}</td>
-          <td><span class="badge">{{ student.studentCode }}</span></td>
-          <td class="font-medium">{{ student.name }}</td>
-          <td>{{ student.email }}</td>
-          <td>{{ student.dob }}</td>
-          <td>{{ student.address }}</td>
+          <td>{{ sem.id }}</td>
+          <td class="font-medium">{{ sem.semesterName }}</td>
+          <td><span class="badge">{{ sem.academicYear }}</span></td>
           <td class="actions-cell">
-            <a [routerLink]="['/students', student.id, 'gradebook']" class="btn-icon text-success">Điểm</a>
-            <a [routerLink]="['/students', student.id, 'edit']" class="btn-icon text-primary">Sửa</a>
-            <button (click)="deleteStudent(student.id)" class="btn-icon text-danger">Xóa</button>
+            <a [routerLink]="['/semesters', sem.id, 'edit']" class="btn-icon text-primary">Sửa</a>
+            <button (click)="deleteSemester(sem.id)" class="btn-icon text-danger">Xóa</button>
           </td>
         </tr>
         } @empty {
         <tr>
-          <td colspan="7" class="empty-state">
+          <td colspan="4" class="empty-state">
             <div class="empty-content">
               <div class="empty-icon">📭</div>
-              <p>Không tìm thấy sinh viên nào.</p>
+              <p>Không tìm thấy học kỳ nào.</p>
             </div>
           </td>
         </tr>
@@ -74,8 +65,8 @@
     </div>
 
     <div class="pagination-info">
-      Đang xem {{ students.length > 0 ? (currentPage - 1) * pageSize + 1 : 0 }} 
-      - {{ (currentPage - 1) * pageSize + students.length }} 
+      Đang xem {{ semesters.length > 0 ? (currentPage - 1) * pageSize + 1 : 0 }} 
+      - {{ (currentPage - 1) * pageSize + semesters.length }} 
       trong tổng số {{ totalItems }} bản ghi
     </div>
 

@@ -1,0 +1,142 @@
+.gradebook-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.flex-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
+.back-btn {
+  font-size: 0.9rem;
+  padding: 6px 12px;
+}
+
+.header-actions h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filters-container {
+  display: flex;
+  gap: 20px;
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+  border-left: 4px solid #0056b3;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  max-width: 300px;
+  position: relative;
+}
+
+.filter-group label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.loading-spinner {
+  position: absolute;
+  right: -25px;
+  top: 32px;
+  font-size: 1.2rem;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.grade-card {
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.grade-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 15px;
+}
+
+.grade-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+  background-color: #f1f3f5;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.grade-item.highlight {
+  background-color: #e3f2fd;
+  border-color: #bbdefb;
+}
+
+.grade-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.grade-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #212529;
+}
+
+.grade-item.highlight .grade-value {
+  color: #0d47a1;
+}
+
+.grade-summary {
+  padding-top: 20px;
+  border-top: 1px dashed #dee2e6;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.total-score {
+  background-color: #fff;
+  padding: 10px 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+}
+
+.score-final {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.score-final.pass {
+  color: #2e7d32;
+}
+
+.score-final.fail {
+  color: #c62828;
+}
+
+.badge-info {
+  background-color: #17a2b8;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}

@@ -1,10 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { StudentService } from '../../services/student.service';
-import { Observable, of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { finalize, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-student-form',
@@ -19,11 +19,14 @@ export class StudentFormComponent implements OnInit {
   studentId?: number;
   selectedFile: File | null = null;
   imagePreview: string | null = null;
+  isSubmitting = false;
+  submitError: string | null = null;
 
   private fb = inject(FormBuilder);
   private studentService = inject(StudentService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor() {
     this.studentForm = this.fb.group({
@@ -40,9 +43,10 @@ export class StudentFormComponent implements OnInit {
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
-      if (id) {
-        this.isEditMode = true;
-        this.studentId = +id;
+      this.isEditMode = !!id;
+      this.studentId = id ? +id : undefined;
+
+      if (this.studentId) {
         this.loadStudentData(this.studentId);
       }
     });
@@ -94,11 +98,16 @@ export class StudentFormComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.isSubmitting) {
+      return;
+    }
+
     if (this.studentForm.invalid) {
       this.studentForm.markAllAsTouched();
       return;
     }
 
+    this.submitError = null;
     let finalProcess$: Observable<any>;
 
     if (this.selectedFile) {
@@ -115,11 +124,37 @@ export class StudentFormComponent implements OnInit {
       finalProcess$ = this.saveStudent(this.studentForm.getRawValue());
     }
 
-    finalProcess$.subscribe({
-      next: () => {
-        this.router.navigate(['/']);
-      },
-      error: (err: any) => console.error('Error saving student', err)
-    });
+    this.isSubmitting = true;
+    finalProcess$
+      .subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.cdr.detectChanges();
+          this.router.navigate(['/students']);
+        },
+        error: (err: any) => {
+          this.isSubmitting = false;
+          this.submitError = this.getBackendErrorMessage(err);
+          console.error('Error saving student:', err);
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  private getBackendErrorMessage(err: any): string {
+    const message = err?.error?.message;
+    if (Array.isArray(message) && message.length) {
+      return message.join(', ');
+    }
+    if (typeof message === 'string' && message.trim()) {
+      return message;
+    }
+
+    const fallback = err?.error?.error ?? err?.message;
+    if (typeof fallback === 'string' && fallback.trim()) {
+      return fallback;
+    }
+
+    return 'Khong the luu sinh vien. Vui long thu lai.';
   }
 }

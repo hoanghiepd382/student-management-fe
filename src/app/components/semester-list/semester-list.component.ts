@@ -2,18 +2,18 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Student } from '../../models/student';
-import { StudentService } from '../../services/student.service';
+import { Semester } from '../../models/rest.response';
+import { SemesterService } from '../../services/semester.service';
 
 @Component({
-  selector: 'app-student-list',
+  selector: 'app-semester-list',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
-  templateUrl: './student-list.component.html',
-  styleUrls: ['./student-list.component.css']
+  templateUrl: './semester-list.component.html',
+  styleUrls: ['./semester-list.component.css']
 })
-export class StudentListComponent implements OnInit {
-  students: Student[] = [];
+export class SemesterListComponent implements OnInit {
+  semesters: Semester[] = [];
   searchKeyword = '';
   sortField = '';
   sortDirection: 'asc' | 'desc' = 'asc';
@@ -23,18 +23,18 @@ export class StudentListComponent implements OnInit {
   totalItems = 0;
   totalPages = 0;
 
-  private studentService = inject(StudentService);
+  private semesterService = inject(SemesterService);
   private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
-    this.loadStudents();
+    this.loadSemesters();
   }
 
-  loadStudents(): void {
+  loadSemesters(): void {
     let filter = '';
     if (this.searchKeyword.trim()) {
       const keyword = this.searchKeyword.trim();
-      filter = `name ~~ '${keyword}' or studentCode ~~ '${keyword}'`;
+      filter = `semesterName ~~ '${keyword}' or academicYear ~~ '${keyword}'`;
     }
 
     let sort = '';
@@ -42,7 +42,7 @@ export class StudentListComponent implements OnInit {
       sort = `${this.sortField},${this.sortDirection}`;
     }
 
-    this.studentService.getStudents({
+    this.semesterService.getSemesters({
       filter,
       sort,
       page: this.currentPage,
@@ -50,7 +50,7 @@ export class StudentListComponent implements OnInit {
     }).subscribe({
       next: (res) => {
         const list = res?.data?.result ?? [];
-        this.students = [...list];
+        this.semesters = [...list];
 
         if (res?.data?.meta) {
           const meta = res.data.meta;
@@ -61,13 +61,13 @@ export class StudentListComponent implements OnInit {
 
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error loading students', err)
+      error: (err) => console.error('Error loading semesters', err)
     });
   }
 
   onSearch(): void {
     this.currentPage = 1;
-    this.loadStudents();
+    this.loadSemesters();
   }
 
   onSort(field: string): void {
@@ -78,20 +78,20 @@ export class StudentListComponent implements OnInit {
       this.sortDirection = 'asc';
     }
     this.currentPage = 1;
-    this.loadStudents();
+    this.loadSemesters();
   }
 
   onPageChange(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
-      this.loadStudents();
+      this.loadSemesters();
       window.scrollTo(0, 0);
     }
   }
 
   onPageSizeChange(): void {
     this.currentPage = 1;
-    this.loadStudents();
+    this.loadSemesters();
   }
 
   getPagesArray(): number[] {
@@ -115,12 +115,12 @@ export class StudentListComponent implements OnInit {
     return this.sortDirection === 'asc' ? '↑' : '↓';
   }
 
-  deleteStudent(id: number | undefined): void {
+  deleteSemester(id: number | undefined): void {
     if (!id) return;
-    if (confirm('Bạn có chắc chắn muốn xóa sinh viên này?')) {
-      this.studentService.deleteStudent(id).subscribe({
-        next: () => this.loadStudents(),
-        error: (err) => console.error('Error deleting student', err)
+    if (confirm('Bạn có chắc chắn muốn xóa học kỳ này?')) {
+      this.semesterService.deleteSemester(id).subscribe({
+        next: () => this.loadSemesters(),
+        error: (err) => alert('Lỗi khi xóa học kỳ: ' + err.message)
       });
     }
   }

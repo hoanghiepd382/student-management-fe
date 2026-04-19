@@ -1,0 +1,65 @@
+<div class="card form-container animate-fade-in">
+  <div class="form-header">
+    <h2>{{ isEditMode ? 'Sửa thông tin học kỳ' : 'Thêm mới học kỳ' }}</h2>
+    <a routerLink="/semesters" class="btn btn-secondary">
+      Quay lại danh sách
+    </a>
+  </div>
+
+  @if (submitError) {
+    <div class="alert-error-banner" role="alert">
+      <strong>Lỗi:</strong>
+      <span>{{ submitError }}</span>
+    </div>
+  }
+
+  <form [formGroup]="semesterForm" (ngSubmit)="onSubmit()">
+    <div class="form-row">
+      <div class="form-group half">
+        <label for="semesterName">Tên Học Kỳ</label>
+        <input
+          type="text"
+          id="semesterName"
+          formControlName="semesterName"
+          class="form-control"
+          [ngClass]="{'is-invalid': semesterForm.get('semesterName')?.invalid && semesterForm.get('semesterName')?.touched}"
+          placeholder="e.g. Học kì 1">
+        @if (semesterForm.get('semesterName')?.invalid && semesterForm.get('semesterName')?.touched) {
+          <span class="error-text">Vui lòng điền Tên học kỳ</span>
+        }
+      </div>
+
+      <div class="form-group half">
+        <label for="academicYear">Năm học</label>
+        <input
+          type="text"
+          id="academicYear"
+          formControlName="academicYear"
+          class="form-control"
+          [ngClass]="{'is-invalid': semesterForm.get('academicYear')?.invalid && semesterForm.get('academicYear')?.touched}"
+          placeholder="e.g. 2024-2025">
+        @if (semesterForm.get('academicYear')?.hasError('required') && semesterForm.get('academicYear')?.touched) {
+          <span class="error-text">Vui lòng nhập Năm học</span>
+        }
+        @if (semesterForm.get('academicYear')?.hasError('pattern') && semesterForm.get('academicYear')?.touched) {
+          <span class="error-text">Năm học phải có định dạng YYYY-YYYY (VD: 2024-2025)</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="(semesterForm.pristine && isEditMode) || semesterForm.invalid || isSubmitting"
+      >
+        @if (isSubmitting) {
+          <span class="spinner" aria-hidden="true"></span>
+          <span>Đang xử lý...</span>
+        } @else {
+          {{ isEditMode ? 'Cập nhật học kỳ' : 'Lưu học kỳ' }}
+        }
+      </button>
+    </div>
+  </form>
+</div>
