@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Student } from '../models/student';
-import { RestResponse, ResultPaginationDTO, ResUploadFileDTO, Semester, ClassSubjectDTO, FetchGradeDTO } from '../models/rest.response';
+import { RestResponse, ResultPaginationDTO, ResUploadFileDTO, Semester, ClassSubjectDTO, FetchGradeDTO, GradeSummaryDTO } from '../models/rest.response';
 
 @Injectable({
   providedIn: 'root'
@@ -61,5 +61,9 @@ export class StudentService {
 
   getGradeDetail(studentId: number, courseClassId: number): Observable<RestResponse<FetchGradeDTO>> {
     return this.http.get<RestResponse<FetchGradeDTO>>(`${this.apiUrl}/${studentId}/gradebook/course-classes/${courseClassId}`);
+  }
+
+  getGradeSummary(studentId: number, semesterId: number): Observable<RestResponse<GradeSummaryDTO>> {
+    return this.http.get<RestResponse<GradeSummaryDTO>>(`${this.apiUrl}/${studentId}/gradebook/semesters/${semesterId}/summary`);
   }
 }

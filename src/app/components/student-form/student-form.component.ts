@@ -3,8 +3,11 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { StudentService } from '../../services/student.service';
+import { MajorService } from '../../services/major.service';
+import { Major } from '../../models/rest.response';
+import { Student } from '../../models/student';
 import { Observable } from 'rxjs';
-import { finalize, switchMap } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-student-form',
@@ -21,9 +24,12 @@ export class StudentFormComponent implements OnInit {
   imagePreview: string | null = null;
   isSubmitting = false;
   submitError: string | null = null;
+  majors: Major[] = [];
+  enrollmentYearOptions: number[] = [2026, 2025, 2024, 2023, 2022, 2021];
 
   private fb = inject(FormBuilder);
   private studentService = inject(StudentService);
+  private majorService = inject(MajorService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
@@ -34,6 +40,9 @@ export class StudentFormComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       studentCode: ['', Validators.required],
       address: [''],
+      className: [''],
+      enrollmentYear: [2026, Validators.required],
+      majorId: [null, Validators.required],
       dob: [''],
       gender: ['MALE'],
       avatar: ['']
@@ -41,10 +50,18 @@ export class StudentFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadMajors();
+
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       this.isEditMode = !!id;
       this.studentId = id ? +id : undefined;
+
+      if (this.isEditMode) {
+        this.studentForm.get('enrollmentYear')?.disable();
+      } else {
+        this.studentForm.get('enrollmentYear')?.enable();
+      }
 
       if (this.studentId) {
         this.loadStudentData(this.studentId);
@@ -61,6 +78,9 @@ export class StudentFormComponent implements OnInit {
           email: student.email,
           studentCode: student.studentCode,
           address: student.address,
+          className: student.className ?? '',
+          enrollmentYear: student.enrollmentYear ?? new Date().getFullYear(),
+          majorId: student.major?.id ?? null,
           dob: student.dob,
           gender: student.gender,
           avatar: student.avatar
@@ -77,6 +97,16 @@ export class StudentFormComponent implements OnInit {
     });
   }
 
+  loadMajors(): void {
+    this.majorService.getMajors({ page: 1, size: 200, sort: 'majorCode,asc' }).subscribe({
+      next: (res) => {
+        this.majors = res?.data?.result ?? [];
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error loading majors', err)
+    });
+  }
+
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
@@ -90,10 +120,16 @@ export class StudentFormComponent implements OnInit {
   }
 
   private saveStudent(studentData: any): Observable<any> {
+    const payload: Student = {
+      ...studentData,
+      major: studentData.majorId ? { id: studentData.majorId } : null
+    };
+    delete (payload as any).majorId;
+
     if (this.isEditMode && this.studentId) {
-      return this.studentService.updateStudent(this.studentId, studentData);
+      return this.studentService.updateStudent(this.studentId, payload);
     } else {
-      return this.studentService.createStudent(studentData);
+      return this.studentService.createStudent(payload);
     }
   }
 
@@ -155,6 +191,6 @@ export class StudentFormComponent implements OnInit {
       return fallback;
     }
 
-    return 'Khong the luu sinh vien. Vui long thu lai.';
+    return 'Không thể lưu sinh viên. Vui lòng thử lại.';
   }
 }

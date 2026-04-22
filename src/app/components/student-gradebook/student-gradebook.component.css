@@ -28,6 +28,8 @@
 
 .filters-container {
   display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
   gap: 20px;
   padding: 15px 20px;
   background-color: #f8f9fa;
@@ -38,8 +40,8 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  flex: 1;
-  max-width: 300px;
+  flex: 1 1 260px;
+  min-width: 240px;
   position: relative;
 }
 
@@ -55,6 +57,33 @@
   top: 32px;
   font-size: 1.2rem;
   animation: spin 1s infinite linear;
+}
+
+.summary-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 180px;
+}
+
+.summary-group label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.summary-value {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #d4e3f7;
+  background: linear-gradient(135deg, #f5f9ff 0%, #eef4ff 100%);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0d47a1;
 }
 
 @keyframes spin {

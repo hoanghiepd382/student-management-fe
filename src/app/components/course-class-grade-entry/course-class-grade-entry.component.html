@@ -1,0 +1,94 @@
+<div class="card animate-fade-in">
+  <div class="header-actions">
+    <div>
+      <h2>Nhập điểm lớp học phần</h2>
+      <p class="sub-title">
+        {{ getCourseClassTitle() }}
+        @if (courseClass) {
+        <span>- {{ courseClass.semester.semesterName }} ({{ courseClass.semester.academicYear }})</span>
+        }
+      </p>
+    </div>
+    <a [routerLink]="['/classes', courseClassId, 'students']" class="btn btn-secondary">DS sinh viên lớp</a>
+  </div>
+
+  @if (errorMessage) {
+  <div class="alert-error-banner" role="alert">
+    <strong>Lỗi:</strong>
+    <span>{{ errorMessage }}</span>
+  </div>
+  }
+
+  <div class="toolbar">
+    <a routerLink="/classes" class="btn btn-secondary">Quay lại danh sách lớp</a>
+    @if (loadingExistingGrades) {
+    <span class="loading-text">Đang tải điểm hiện có...</span>
+    }
+  </div>
+
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>MSV</th>
+          <th>Họ tên</th>
+          @for (composition of gradeCompositions; track composition.id) {
+          <th>
+            <div class="grade-col-title">{{ composition.gradeItemName }}</div>
+            <div class="grade-col-weight">{{ composition.weight * 100 | number:'1.0-0' }}%</div>
+          </th>
+          }
+          <th class="text-right">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoadingAny()) {
+        <tr>
+          <td [attr.colspan]="gradeCompositions.length + 3" class="empty-state">
+            Đang tải dữ liệu...
+          </td>
+        </tr>
+        } @else {
+          @for (item of enrollments; track item.id) {
+          <tr>
+            <td><span class="badge">{{ item.student.studentCode }}</span></td>
+            <td class="font-medium">{{ item.student.name || '-' }}</td>
+            @for (composition of gradeCompositions; track composition.id) {
+            <td>
+              <input
+                type="number"
+                min="0"
+                max="10"
+                step="0.1"
+                class="form-control score-input"
+                [value]="getInputValue(item.student.id, composition.id)"
+                (input)="setInputValue(item.student.id, composition.id, $any($event.target).value)"
+                [disabled]="rowSavingStudentIds.has(item.student.id)"
+              >
+            </td>
+            }
+            <td class="actions-cell">
+              <button
+                class="btn btn-primary btn-sm"
+                [disabled]="rowSavingStudentIds.has(item.student.id) || gradeCompositions.length === 0"
+                (click)="saveStudentGrades(item)"
+              >
+                {{ rowSavingStudentIds.has(item.student.id) ? 'Đang lưu...' : 'Lưu điểm' }}
+              </button>
+              @if (rowSavedStudentIds.has(item.student.id)) {
+              <span class="saved-ok">Đã lưu</span>
+              }
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td [attr.colspan]="gradeCompositions.length + 3" class="empty-state">
+              Không có sinh viên nào trong lớp học phần này.
+            </td>
+          </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

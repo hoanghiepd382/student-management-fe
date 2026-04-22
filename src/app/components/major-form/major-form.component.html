@@ -1,0 +1,49 @@
+<div class="card form-container animate-fade-in">
+  <div class="form-header">
+    <h2>{{ isEditMode ? 'Sửa thông tin ngành học' : 'Thêm mới ngành học' }}</h2>
+    <a routerLink="/majors" class="btn btn-secondary">Quay lại danh sách</a>
+  </div>
+
+  @if (submitError) {
+    <div class="alert-error-banner" role="alert">
+      <strong>Lỗi:</strong> <span>{{ submitError }}</span>
+    </div>
+  }
+
+  <form [formGroup]="majorForm" (ngSubmit)="onSubmit()">
+    <div class="form-row">
+      <div class="form-group half">
+        <label for="majorCode">Mã ngành</label>
+        <input type="text" id="majorCode" formControlName="majorCode" class="form-control"
+          [ngClass]="{'is-invalid': majorForm.get('majorCode')?.invalid && majorForm.get('majorCode')?.touched}"
+          placeholder="e.g. CN">
+        @if (majorForm.get('majorCode')?.invalid && majorForm.get('majorCode')?.touched) {
+          <span class="error-text">Vui lòng điền Mã ngành</span>
+        }
+      </div>
+
+      <div class="form-group half">
+        <label for="majorName">Tên ngành</label>
+        <input type="text" id="majorName" formControlName="majorName" class="form-control"
+          [ngClass]="{'is-invalid': majorForm.get('majorName')?.invalid && majorForm.get('majorName')?.touched}"
+          placeholder="e.g. Cong nghe thong tin">
+        @if (majorForm.get('majorName')?.invalid && majorForm.get('majorName')?.touched) {
+          <span class="error-text">Vui lòng điền Tên ngành</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary"
+        [disabled]="(majorForm.pristine && isEditMode) || majorForm.invalid || isSubmitting">
+        @if (isSubmitting) {
+          <span class="spinner" aria-hidden="true"></span>
+          <span>Đang xử lý...</span>
+        } @else {
+          {{ isEditMode ? 'Cập nhật ngành học' : 'Lưu ngành học' }}
+        }
+      </button>
+    </div>
+  </form>
+</div>
+

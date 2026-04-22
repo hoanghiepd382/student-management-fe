@@ -5,30 +5,46 @@
   </div>
 
   @if (submitError) {
-    <div class="alert-error-banner" role="alert">
-      <strong>Lỗi:</strong> <span>{{ submitError }}</span>
-    </div>
+  <div class="alert-error-banner" role="alert">
+    <strong>Lỗi:</strong> <span>{{ submitError }}</span>
+  </div>
+  }
+
+  @if (compositionError) {
+  <div class="alert-error-banner" role="alert">
+    <strong>Lỗi đầu điểm:</strong> <span>{{ compositionError }}</span>
+  </div>
   }
 
   <form [formGroup]="subjectForm" (ngSubmit)="onSubmit()">
     <div class="form-row">
       <div class="form-group half">
         <label for="subjectCode">Mã môn học</label>
-        <input type="text" id="subjectCode" formControlName="subjectCode" class="form-control"
-          [ngClass]="{'is-invalid': subjectForm.get('subjectCode')?.invalid && subjectForm.get('subjectCode')?.touched}"
-          placeholder="e.g. INT1304">
+        <input
+          type="text"
+          id="subjectCode"
+          formControlName="subjectCode"
+          class="form-control"
+          [ngClass]="{ 'is-invalid': subjectForm.get('subjectCode')?.invalid && subjectForm.get('subjectCode')?.touched }"
+          placeholder="VD: INT1304"
+        >
         @if (subjectForm.get('subjectCode')?.invalid && subjectForm.get('subjectCode')?.touched) {
-          <span class="error-text">Vui lòng điền Mã môn học</span>
+        <span class="error-text">Vui lòng điền mã môn học</span>
         }
       </div>
 
       <div class="form-group half">
         <label for="subjectName">Tên môn học</label>
-        <input type="text" id="subjectName" formControlName="subjectName" class="form-control"
-          [ngClass]="{'is-invalid': subjectForm.get('subjectName')?.invalid && subjectForm.get('subjectName')?.touched}"
-          placeholder="e.g. Cơ sở dữ liệu">
+        <input
+          type="text"
+          id="subjectName"
+          formControlName="subjectName"
+          class="form-control"
+          [ngClass]="{ 'is-invalid': subjectForm.get('subjectName')?.invalid && subjectForm.get('subjectName')?.touched }"
+          placeholder="VD: Cơ sở dữ liệu"
+        >
         @if (subjectForm.get('subjectName')?.invalid && subjectForm.get('subjectName')?.touched) {
-          <span class="error-text">Vui lòng điền Tên môn học</span>
+        <span class="error-text">Vui lòng điền tên môn học</span>
         }
       </div>
     </div>
@@ -36,22 +52,100 @@
     <div class="form-row">
       <div class="form-group half">
         <label for="credit">Số tín chỉ</label>
-        <input type="number" id="credit" formControlName="credit" class="form-control" min="1"
-          [ngClass]="{'is-invalid': subjectForm.get('credit')?.invalid && subjectForm.get('credit')?.touched}">
+        <input
+          type="number"
+          id="credit"
+          formControlName="credit"
+          class="form-control"
+          min="1"
+          [ngClass]="{ 'is-invalid': subjectForm.get('credit')?.invalid && subjectForm.get('credit')?.touched }"
+        >
         @if (subjectForm.get('credit')?.invalid && subjectForm.get('credit')?.touched) {
-          <span class="error-text">Số tín chỉ phải ≥ 1</span>
+        <span class="error-text">Số tín chỉ phải ≥ 1</span>
         }
       </div>
     </div>
 
+    <div class="grade-composition-section">
+      <div class="grade-composition-header">
+        <h3>Đầu điểm và trọng số</h3>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="addGradeComposition()">
+          + Thêm đầu điểm
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table grade-composition-table">
+          <thead>
+            <tr>
+              <th>Tên đầu điểm</th>
+              <th>Trọng số (%)</th>
+              <th class="text-right">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of gradeCompositions; track $index) {
+            <tr>
+              <td>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="item.gradeItemName"
+                  (ngModelChange)="markCompositionChanged()"
+                  [ngModelOptions]="{ standalone: true }"
+                  [readonly]="!canEditGradeItemName(item)"
+                  placeholder="VD: Giữa kỳ"
+                >
+                @if (!canEditGradeItemName(item)) {
+                <small class="field-note"></small>
+                }
+              </td>
+              <td class="weight-col">
+                <input
+                  type="number"
+                  class="form-control"
+                  [(ngModel)]="item.weightPercent"
+                  (ngModelChange)="markCompositionChanged()"
+                  [ngModelOptions]="{ standalone: true }"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                >
+              </td>
+              <td class="text-right">
+                <button type="button" class="btn-icon text-danger" (click)="removeGradeComposition($index)">
+                  Xóa
+                </button>
+              </td>
+            </tr>
+            } @empty {
+            <tr>
+              <td colspan="3" class="empty-state">Chưa có đầu điểm nào.</td>
+            </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="total-label">Tổng trọng số</td>
+              <td class="total-value">{{ getTotalWeightPercent() | number:'1.0-2' }}%</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary"
-        [disabled]="(subjectForm.pristine && isEditMode) || subjectForm.invalid || isSubmitting">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="(subjectForm.pristine && !hasCompositionChanges && isEditMode) || subjectForm.invalid || isSubmitting"
+      >
         @if (isSubmitting) {
-          <span class="spinner" aria-hidden="true"></span>
-          <span>Đang xử lý...</span>
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Đang xử lý...</span>
         } @else {
-          {{ isEditMode ? 'Cập nhật môn học' : 'Lưu môn học' }}
+        {{ isEditMode ? 'Cập nhật môn học' : 'Lưu môn học' }}
         }
       </button>
     </div>

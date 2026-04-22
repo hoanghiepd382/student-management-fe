@@ -155,3 +155,95 @@
   transform: none !important;
   box-shadow: none !important;
 }
+
+.grade-composition-section {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.grade-composition-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.grade-composition-header h3 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1rem;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.grade-composition-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.grade-composition-table th,
+.grade-composition-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.grade-composition-table th {
+  text-align: left;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.weight-col {
+  width: 180px;
+}
+
+.field-note {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.text-danger {
+  color: var(--danger);
+}
+
+.text-danger:hover {
+  color: var(--danger-hover);
+  text-decoration: underline;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 1rem !important;
+}
+
+.total-label {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.total-value {
+  font-weight: 700;
+}

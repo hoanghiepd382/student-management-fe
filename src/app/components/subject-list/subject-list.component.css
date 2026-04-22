@@ -9,11 +9,19 @@
   display: flex;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-by-select {
+  width: 180px;
+  min-width: 180px;
 }
 
 .search-input {
   flex: 1;
-  max-width: 400px;
+  min-width: 220px;
+  max-width: 440px;
 }
 
 .sortable {

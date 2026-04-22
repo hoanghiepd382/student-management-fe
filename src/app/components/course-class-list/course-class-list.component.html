@@ -1,14 +1,51 @@
 <div class="card animate-fade-in">
   <div class="header-actions">
-    <h2>Danh sách Lớp học phần</h2>
+    <h2>Danh sách lớp học phần</h2>
     <a routerLink="/classes/new" class="btn btn-primary">
       <span>+</span> Thêm mới
     </a>
   </div>
 
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Năm học</label>
+      <select class="form-control filter-select" [(ngModel)]="selectedAcademicYear" (change)="onAcademicYearFilterChange()">
+        <option [ngValue]="'ALL'">Tất cả năm học</option>
+        @for (year of academicYearOptions; track year) {
+        <option [ngValue]="year">{{ year }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Học kỳ</label>
+      <select class="form-control filter-select" [(ngModel)]="selectedSemesterId" (change)="onSemesterFilterChange()">
+        <option [ngValue]="'ALL'">Tất cả học kỳ</option>
+        @for (semester of getFilteredSemesters(); track semester.id) {
+        <option [ngValue]="semester.id">{{ semester.semesterName }} - {{ semester.academicYear }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Môn học</label>
+      <select class="form-control filter-select" [(ngModel)]="selectedSubjectId" (change)="onSubjectFilterChange()">
+        <option [ngValue]="'ALL'">Tất cả môn học</option>
+        @for (subject of subjects; track subject.id) {
+        <option [ngValue]="subject.id">{{ subject.subjectCode }} - {{ subject.subjectName }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
   <div class="search-bar">
-    <input type="text" class="form-control search-input" placeholder="Tìm theo Tên nhóm..."
-      [(ngModel)]="searchKeyword" (keyup.enter)="onSearch()">
+    <input
+      type="text"
+      class="form-control search-input"
+      placeholder="Tìm theo tên nhóm..."
+      [(ngModel)]="searchKeyword"
+      (keyup.enter)="onSearch()"
+    >
     <button class="btn btn-primary" (click)="onSearch()">Tìm kiếm</button>
   </div>
 
@@ -23,7 +60,9 @@
             Nhóm <span class="sort-icon">{{ getSortIcon('groupName') }}</span>
           </th>
           <th>Học kỳ</th>
-          <th>Năm học</th>
+          <th class="sortable" (click)="onSort('semester.academicYear')">
+            Năm học <span class="sort-icon">{{ getSortIcon('semester.academicYear') }}</span>
+          </th>
           <th class="text-right">Hành động</th>
         </tr>
       </thead>
@@ -31,12 +70,13 @@
         @for (cls of classes; track cls.id) {
         <tr>
           <td>{{ cls.id }}</td>
-          <td class="font-medium">{{ cls.subject?.subjectName }}</td>
-          <td><span class="badge">{{ cls.subject?.subjectCode }}</span></td>
+          <td class="font-medium">{{ cls.subject.subjectName }}</td>
+          <td><span class="badge">{{ cls.subject.subjectCode }}</span></td>
           <td>Nhóm {{ cls.groupName }}</td>
-          <td>{{ cls.semester?.semesterName }}</td>
-          <td>{{ cls.semester?.academicYear }}</td>
+          <td>{{ cls.semester.semesterName }}</td>
+          <td>{{ cls.semester.academicYear }}</td>
           <td class="actions-cell">
+            <a [routerLink]="['/classes', cls.id, 'students']" class="btn-icon text-success">Sinh viên</a>
             <a [routerLink]="['/classes', cls.id, 'edit']" class="btn-icon text-primary">Sửa</a>
             <button (click)="deleteClass(cls.id)" class="btn-icon text-danger">Xóa</button>
           </td>
@@ -45,7 +85,7 @@
         <tr>
           <td colspan="7" class="empty-state">
             <div class="empty-content">
-              <div class="empty-icon">📭</div>
+              <div class="empty-icon">-</div>
               <p>Không tìm thấy lớp học phần nào.</p>
             </div>
           </td>
@@ -71,11 +111,15 @@
       trong tổng số {{ totalItems }} bản ghi
     </div>
     <div class="pagination-controls">
-      <button class="btn-pagination" [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">&laquo;</button>
+      <button class="btn-pagination" [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">
+        &laquo;
+      </button>
       @for (p of getPagesArray(); track p) {
-        <button class="btn-pagination" [class.active]="p === currentPage" (click)="onPageChange(p)">{{ p }}</button>
+      <button class="btn-pagination" [class.active]="p === currentPage" (click)="onPageChange(p)">{{ p }}</button>
       }
-      <button class="btn-pagination" [disabled]="currentPage === totalPages || totalPages === 0" (click)="onPageChange(currentPage + 1)">&raquo;</button>
+      <button class="btn-pagination" [disabled]="currentPage === totalPages || totalPages === 0" (click)="onPageChange(currentPage + 1)">
+        &raquo;
+      </button>
     </div>
   </div>
 </div>

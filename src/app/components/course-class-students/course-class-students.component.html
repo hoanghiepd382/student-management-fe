@@ -1,0 +1,141 @@
+<div class="card animate-fade-in">
+  <div class="header-actions">
+    <div>
+      <h2>Quản lý sinh viên lớp học phần</h2>
+      <p class="sub-title">
+        {{ getCourseClassTitle() }}
+        @if (courseClass) {
+        <span>- {{ courseClass.semester.semesterName }} ({{ courseClass.semester.academicYear }})</span>
+        }
+      </p>
+    </div>
+    <a routerLink="/classes" class="btn btn-secondary">Quay lại danh sách lớp</a>
+  </div>
+
+  @if (errorMessage) {
+  <div class="alert-error-banner" role="alert">
+    <strong>Lỗi:</strong>
+    <span>{{ errorMessage }}</span>
+  </div>
+  }
+
+  <div class="panel card">
+    <div class="panel-header">
+      <h3>Danh sách sinh viên trong lớp</h3>
+      <div class="panel-actions">
+        @if (loadingEnrollments) {
+        <span class="loading-text">Đang tải...</span>
+        }
+        <a [routerLink]="['/classes', courseClassId, 'grades']" class="btn btn-primary btn-sm">
+          Nhập điểm
+        </a>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>MSV</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Lớp</th>
+            <th class="text-right">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of enrollments; track item.id) {
+          <tr>
+            <td><span class="badge">{{ item.student.studentCode }}</span></td>
+            <td class="font-medium">{{ item.student.name || '-' }}</td>
+            <td>{{ item.student.email || '-' }}</td>
+            <td>{{ item.student.className || '-' }}</td>
+            <td class="actions-cell">
+              <button
+                class="btn-icon text-danger"
+                [disabled]="deletingEnrollmentIds.has(item.id)"
+                (click)="removeEnrollment(item)"
+              >
+                {{ deletingEnrollmentIds.has(item.id) ? 'Đang xóa...' : 'Xóa' }}
+              </button>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="5" class="empty-state">Chưa có sinh viên nào trong lớp học phần này.</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel card mt-4">
+    <div class="panel-header">
+      <h3>Thêm sinh viên vào lớp</h3>
+    </div>
+
+    <div class="search-bar">
+      <select class="form-control search-by-select" [(ngModel)]="searchBy">
+        <option value="studentCode">Mã sinh viên</option>
+        <option value="name">Họ tên</option>
+        <option value="email">Email</option>
+      </select>
+      <input
+        type="text"
+        class="form-control search-input"
+        [placeholder]="getSearchPlaceholder()"
+        [(ngModel)]="searchKeyword"
+        (keyup.enter)="searchStudents()"
+      >
+      <button class="btn btn-primary" [disabled]="searchingStudents" (click)="searchStudents()">
+        {{ searchingStudents ? 'Đang tìm...' : 'Tìm sinh viên' }}
+      </button>
+    </div>
+
+    @if (searchKeyword.trim()) {
+    <div class="table-responsive mt-3">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>MSV</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Lớp</th>
+            <th class="text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (student of searchResults; track student.id) {
+          <tr>
+            <td><span class="badge">{{ student.studentCode }}</span></td>
+            <td class="font-medium">{{ student.name }}</td>
+            <td>{{ student.email }}</td>
+            <td>{{ student.className || '-' }}</td>
+            <td class="actions-cell">
+              <button
+                class="btn btn-primary btn-sm"
+                [disabled]="!student.id || isStudentEnrolled(student.id) || addingStudentIds.has(student.id)"
+                (click)="addStudent(student)"
+              >
+                @if (student.id && addingStudentIds.has(student.id)) {
+                Đang thêm...
+                } @else if (isStudentEnrolled(student.id)) {
+                Đã trong lớp
+                } @else {
+                Thêm vào lớp
+                }
+              </button>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="5" class="empty-state">Không tìm thấy sinh viên phù hợp.</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  </div>
+</div>

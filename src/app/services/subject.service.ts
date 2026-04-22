@@ -1,13 +1,23 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Subject, RestResponse, ResultPaginationDTO } from '../models/rest.response';
+import { Subject, RestResponse, ResultPaginationDTO, GradeCompositionDTO } from '../models/rest.response';
+
+export interface GradeCompositionPayload {
+  id?: number;
+  gradeItemName: string;
+  weight: number;
+  subject: {
+    id: number;
+  };
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class SubjectService {
   private apiUrl = 'http://localhost:8080/subjects';
+  private gradeCompositionApiUrl = 'http://localhost:8080/grade-compositions';
   private http = inject(HttpClient);
 
   getSubjects(params?: { filter?: string; sort?: string; page?: number; size?: number }): Observable<RestResponse<ResultPaginationDTO<Subject>>> {
@@ -33,5 +43,17 @@ export class SubjectService {
 
   deleteSubject(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getGradeCompositionsBySubject(subjectId: number): Observable<RestResponse<GradeCompositionDTO[]>> {
+    return this.http.get<RestResponse<GradeCompositionDTO[]>>(`${this.apiUrl}/${subjectId}/grade-compositions`);
+  }
+
+  saveGradeComposition(payload: GradeCompositionPayload): Observable<RestResponse<GradeCompositionDTO>> {
+    return this.http.post<RestResponse<GradeCompositionDTO>>(this.gradeCompositionApiUrl, payload);
+  }
+
+  deleteGradeComposition(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.gradeCompositionApiUrl}/${id}`);
   }
 }

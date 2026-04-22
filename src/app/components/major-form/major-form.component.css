@@ -156,14 +156,3 @@
   box-shadow: none !important;
 }
 
-.form-control.enrollment-year-readonly {
-  font-weight: 400;
-}
-
-.form-control.enrollment-year-readonly:disabled {
-  font-weight: 400;
-  color: var(--text-main);
-  background-color: #f3f4f6;
-  opacity: 1;
-  cursor: not-allowed;
-}

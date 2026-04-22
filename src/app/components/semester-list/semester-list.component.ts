@@ -14,9 +14,18 @@ import { SemesterService } from '../../services/semester.service';
 })
 export class SemesterListComponent implements OnInit {
   semesters: Semester[] = [];
-  searchKeyword = '';
   sortField = '';
   sortDirection: 'asc' | 'desc' = 'asc';
+
+  academicYearOptions: string[] = [
+    '2026-2027',
+    '2025-2026',
+    '2024-2025',
+    '2023-2024',
+    '2022-2023',
+    '2021-2022'
+  ];
+  selectedAcademicYear = 'ALL';
 
   currentPage = 1;
   pageSize = 10;
@@ -31,41 +40,39 @@ export class SemesterListComponent implements OnInit {
   }
 
   loadSemesters(): void {
-    let filter = '';
-    if (this.searchKeyword.trim()) {
-      const keyword = this.searchKeyword.trim();
-      filter = `semesterName ~~ '${keyword}' or academicYear ~~ '${keyword}'`;
-    }
+    const filter = this.buildAcademicYearFilter();
 
     let sort = '';
     if (this.sortField) {
       sort = `${this.sortField},${this.sortDirection}`;
     }
 
-    this.semesterService.getSemesters({
-      filter,
-      sort,
-      page: this.currentPage,
-      size: this.pageSize
-    }).subscribe({
-      next: (res) => {
-        const list = res?.data?.result ?? [];
-        this.semesters = [...list];
+    this.semesterService
+      .getSemesters({
+        filter,
+        sort,
+        page: this.currentPage,
+        size: this.pageSize
+      })
+      .subscribe({
+        next: (res) => {
+          const list = res?.data?.result ?? [];
+          this.semesters = [...list];
 
-        if (res?.data?.meta) {
-          const meta = res.data.meta;
-          this.totalItems = meta.total;
-          this.totalPages = meta.pages;
-          this.currentPage = meta.page;
-        }
+          if (res?.data?.meta) {
+            const meta = res.data.meta;
+            this.totalItems = meta.total;
+            this.totalPages = meta.pages;
+            this.currentPage = meta.page;
+          }
 
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error loading semesters', err)
-    });
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Error loading semesters', err)
+      });
   }
 
-  onSearch(): void {
+  onAcademicYearFilterChange(): void {
     this.currentPage = 1;
     this.loadSemesters();
   }
@@ -123,5 +130,14 @@ export class SemesterListComponent implements OnInit {
         error: (err) => alert('Lỗi khi xóa học kỳ: ' + err.message)
       });
     }
+  }
+
+  private buildAcademicYearFilter(): string {
+    if (this.selectedAcademicYear === 'ALL') {
+      return '';
+    }
+
+    const escapedYear = this.selectedAcademicYear.replace(/'/g, "''");
+    return `academicYear ~~ '${escapedYear}'`;
   }
 }

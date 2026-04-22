@@ -1,15 +1,15 @@
 <div class="card animate-fade-in">
   <div class="header-actions">
-    <h2>Danh sách môn học</h2>
-    <a routerLink="/subjects/new" class="btn btn-primary">
+    <h2>Danh sách ngành học</h2>
+    <a routerLink="/majors/new" class="btn btn-primary">
       <span>+</span> Thêm mới
     </a>
   </div>
 
   <div class="search-bar">
     <select class="form-control search-by-select" [(ngModel)]="searchBy">
-      <option value="subjectCode">Tìm theo mã môn</option>
-      <option value="subjectName">Tìm theo tên môn</option>
+      <option value="majorCode">Tìm theo mã ngành</option>
+      <option value="majorName">Tìm theo tên ngành</option>
     </select>
     <input
       type="text"
@@ -26,36 +26,32 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th class="sortable" (click)="onSort('subjectCode')">
-            Mã môn <span class="sort-icon">{{ getSortIcon('subjectCode') }}</span>
+          <th class="sortable" (click)="onSort('majorCode')">
+            Mã ngành <span class="sort-icon">{{ getSortIcon('majorCode') }}</span>
           </th>
-          <th class="sortable" (click)="onSort('subjectName')">
-            Tên môn học <span class="sort-icon">{{ getSortIcon('subjectName') }}</span>
+          <th class="sortable" (click)="onSort('majorName')">
+            Tên ngành <span class="sort-icon">{{ getSortIcon('majorName') }}</span>
           </th>
-          <th class="sortable" (click)="onSort('credit')">
-            Số tín chỉ <span class="sort-icon">{{ getSortIcon('credit') }}</span>
-          </th>
-          <th class="text-right">Hành động</th>
+          <th class="text-right actions-header">Hành động</th>
         </tr>
       </thead>
       <tbody>
-        @for (sub of subjects; track sub.id) {
+        @for (major of majors; track major.id) {
         <tr>
-          <td>{{ sub.id }}</td>
-          <td><span class="badge">{{ sub.subjectCode }}</span></td>
-          <td class="font-medium">{{ sub.subjectName }}</td>
-          <td>{{ sub.credit }} TC</td>
-          <td class="actions-cell">
-            <a [routerLink]="['/subjects', sub.id, 'edit']" class="btn-icon text-primary">Sửa</a>
-            <button (click)="deleteSubject(sub.id)" class="btn-icon text-danger">Xóa</button>
+          <td>{{ major.id }}</td>
+          <td><span class="badge">{{ major.majorCode }}</span></td>
+          <td class="font-medium">{{ major.majorName }}</td>
+          <td class="actions-cell major-actions">
+            <a [routerLink]="['/majors', major.id, 'edit']" class="btn-icon text-primary">Sửa</a>
+            <button (click)="deleteMajor(major.id)" class="btn-icon text-danger">Xóa</button>
           </td>
         </tr>
         } @empty {
         <tr>
-          <td colspan="5" class="empty-state">
+          <td colspan="4" class="empty-state">
             <div class="empty-content">
               <div class="empty-icon">-</div>
-              <p>Không tìm thấy môn học nào.</p>
+              <p>Không tìm thấy ngành học nào.</p>
             </div>
           </td>
         </tr>
@@ -75,8 +71,8 @@
       bản ghi / trang
     </div>
     <div class="pagination-info">
-      Đang xem {{ subjects.length > 0 ? (currentPage - 1) * pageSize + 1 : 0 }}
-      - {{ (currentPage - 1) * pageSize + subjects.length }}
+      Đang xem {{ majors.length > 0 ? (currentPage - 1) * pageSize + 1 : 0 }}
+      - {{ (currentPage - 1) * pageSize + majors.length }}
       trong tổng số {{ totalItems }} bản ghi
     </div>
     <div class="pagination-controls">

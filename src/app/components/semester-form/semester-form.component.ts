@@ -20,6 +20,20 @@ export class SemesterFormComponent implements OnInit {
   isSubmitting = false;
   submitError: string | null = null;
 
+  semesterNameOptions: { label: string; value: string }[] = [
+    { label: 'Học kỳ 1', value: 'SEMESTER_1' },
+    { label: 'Học kỳ 2', value: 'SEMESTER_2' },
+    { label: 'Học kỳ 3', value: 'SEMESTER_3' }
+  ];
+  academicYearOptions: string[] = [
+    '2026-2027',
+    '2025-2026',
+    '2024-2025',
+    '2023-2024',
+    '2022-2023',
+    '2021-2022'
+  ];
+
   private fb = inject(FormBuilder);
   private semesterService = inject(SemesterService);
   private route = inject(ActivatedRoute);
@@ -28,13 +42,13 @@ export class SemesterFormComponent implements OnInit {
 
   constructor() {
     this.semesterForm = this.fb.group({
-      semesterName: ['', Validators.required],
-      academicYear: ['', [Validators.required, Validators.pattern('^[0-9]{4}-[0-9]{4}$')]]
+      semesterName: [null, Validators.required],
+      academicYear: [null, Validators.required]
     });
   }
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
       this.isEditMode = !!id;
       this.semesterId = id ? +id : undefined;
@@ -50,8 +64,7 @@ export class SemesterFormComponent implements OnInit {
       next: (res) => {
         const semester = res.data;
         this.semesterForm.patchValue({
-          id: semester.id,
-          semesterName: semester.semesterName,
+          semesterName: this.normalizeSemesterName(semester.semesterName),
           academicYear: semester.academicYear
         });
       },
@@ -63,9 +76,8 @@ export class SemesterFormComponent implements OnInit {
     if (this.isEditMode && this.semesterId) {
       semesterData.id = this.semesterId;
       return this.semesterService.updateSemester(semesterData);
-    } else {
-      return this.semesterService.createSemester(semesterData);
     }
+    return this.semesterService.createSemester(semesterData);
   }
 
   onSubmit(): void {
@@ -81,20 +93,19 @@ export class SemesterFormComponent implements OnInit {
     this.submitError = null;
     this.isSubmitting = true;
 
-    this.saveSemester(this.semesterForm.getRawValue())
-      .subscribe({
-        next: () => {
-          this.isSubmitting = false;
-          this.cdr.detectChanges();
-          this.router.navigate(['/semesters']);
-        },
-        error: (err: any) => {
-          this.isSubmitting = false;
-          this.submitError = this.getBackendErrorMessage(err);
-          console.error('Error saving semester:', err);
-          this.cdr.detectChanges();
-        }
-      });
+    this.saveSemester(this.semesterForm.getRawValue()).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.cdr.detectChanges();
+        this.router.navigate(['/semesters']);
+      },
+      error: (err: any) => {
+        this.isSubmitting = false;
+        this.submitError = this.getBackendErrorMessage(err);
+        console.error('Error saving semester:', err);
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   private getBackendErrorMessage(err: any): string {
@@ -112,5 +123,24 @@ export class SemesterFormComponent implements OnInit {
     }
 
     return 'Không thể lưu học kỳ. Vui lòng thử lại sau.';
+  }
+
+  private normalizeSemesterName(rawValue: string | undefined): string | null {
+    if (!rawValue) {
+      return null;
+    }
+
+    const value = rawValue.trim().toUpperCase();
+    if (value === 'SEMESTER_1' || value.includes('1')) {
+      return 'SEMESTER_1';
+    }
+    if (value === 'SEMESTER_2' || value.includes('2')) {
+      return 'SEMESTER_2';
+    }
+    if (value === 'SEMESTER_3' || value.includes('3')) {
+      return 'SEMESTER_3';
+    }
+
+    return null;
   }
 }

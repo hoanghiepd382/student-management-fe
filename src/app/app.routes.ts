@@ -8,6 +8,10 @@ import { SubjectListComponent } from './components/subject-list/subject-list.com
 import { SubjectFormComponent } from './components/subject-form/subject-form.component';
 import { CourseClassListComponent } from './components/course-class-list/course-class-list.component';
 import { CourseClassFormComponent } from './components/course-class-form/course-class-form.component';
+import { CourseClassStudentsComponent } from './components/course-class-students/course-class-students.component';
+import { CourseClassGradeEntryComponent } from './components/course-class-grade-entry/course-class-grade-entry.component';
+import { MajorListComponent } from './components/major-list/major-list.component';
+import { MajorFormComponent } from './components/major-form/major-form.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'students', pathMatch: 'full' },
@@ -41,7 +45,17 @@ export const routes: Routes = [
     children: [
       { path: '', component: CourseClassListComponent },
       { path: 'new', component: CourseClassFormComponent },
-      { path: ':id/edit', component: CourseClassFormComponent }
+      { path: ':id/edit', component: CourseClassFormComponent },
+      { path: ':id/students', component: CourseClassStudentsComponent },
+      { path: ':id/grades', component: CourseClassGradeEntryComponent }
+    ]
+  },
+  {
+    path: 'majors',
+    children: [
+      { path: '', component: MajorListComponent },
+      { path: 'new', component: MajorFormComponent },
+      { path: ':id/edit', component: MajorFormComponent }
     ]
   },
   { path: '**', redirectTo: 'students' }

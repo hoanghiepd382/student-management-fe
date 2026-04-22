@@ -2,10 +2,13 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, ParamMap, RouterLink } from '@angular/router';
-import { StudentService } from '../../services/student.service';
-import { Student } from '../../models/student';
-import { Semester, ClassSubjectDTO, FetchGradeDTO } from '../../models/rest.response';
+import { forkJoin } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
+import { StudentService } from '../../services/student.service';
+import { SubjectService } from '../../services/subject.service';
+import { GradeService } from '../../services/grade.service';
+import { Student } from '../../models/student';
+import { Semester, ClassSubjectDTO, GradeCompositionDTO, GradeEntryDetailDTO, GradeSummaryDTO } from '../../models/rest.response';
 
 @Component({
   selector: 'app-student-gradebook',
@@ -17,6 +20,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class StudentGradebook implements OnInit {
   private route = inject(ActivatedRoute);
   private studentService = inject(StudentService);
+  private subjectService = inject(SubjectService);
+  private gradeService = inject(GradeService);
   private cdr = inject(ChangeDetectorRef);
 
   studentId!: number;
@@ -28,170 +33,156 @@ export class StudentGradebook implements OnInit {
   classes: ClassSubjectDTO[] = [];
   selectedClassId: number | null = null;
 
-  gradeDetail: FetchGradeDTO | null = null;
+  gradeCompositions: GradeCompositionDTO[] = [];
+  gradeDetails: GradeEntryDetailDTO[] = [];
+  gradeSummary: GradeSummaryDTO | null = null;
 
   isLoading = false;
   isLoadingClasses = false;
   isLoadingGrade = false;
+  isLoadingSummary = false;
   errorMessage: string | null = null;
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params: ParamMap) => {
       const id = this.getStudentIdFromRoute(params);
       if (id === null) {
-        this.errorMessage = 'Khong lay duoc studentId tu URL.';
+        this.errorMessage = 'Không lấy được studentId từ URL.';
+        this.cdr.detectChanges();
         return;
       }
 
       this.studentId = id;
-      this.loadStudentData();
-    });
-  }
-
-  loadStudentData(): void {
-    this.loadStudentDataSafe();
-    return;
-
-    this.isLoading = true;
-    this.errorMessage = null;
-
-    this.studentService.getStudent(this.studentId).subscribe({
-      next: (res: any) => {
-        console.log('GET_STUDENT API CATCH', res);
-        if (res && res.data) {
-          this.student = res.data;
-          console.log('STUDENT ASSIGNED:', this.student);
-          this.loadSemesters();
-        } else if (res && res.id) {
-          this.student = res;
-          console.log('STUDENT ASSIGNED (FALLBACK):', this.student);
-          this.loadSemesters();
-        } else {
-          this.isLoading = false;
-          this.errorMessage = 'Dữ liệu trả về bị rỗng. Chi tiết: ' + JSON.stringify(res);
-        }
-      },
-      error: (err: HttpErrorResponse) => {
-        this.isLoading = false;
-        this.errorMessage = this.getErrorMessage(err);
-      }
-    });
-  }
-
-  loadSemesters(): void {
-    this.loadSemestersSafe();
-    return;
-
-    this.studentService.getSemestersByStudent(this.studentId).subscribe({
-      next: (res: any) => {
-        console.log('SEMESTERS API CATCH', res);
-        this.isLoading = false;
-        if (res && res.data && res.data.length > 0) {
-          this.semesters = res.data;
-          console.log('SEMESTERS ASSIGNED', this.semesters);
-          this.selectedSemesterId = this.semesters[0].id;
-          this.onSemesterChange();
-        } else if (Array.isArray(res) && res.length > 0) {
-          this.semesters = res;
-          this.selectedSemesterId = this.semesters[0].id;
-          this.onSemesterChange();
-        } else {
-          console.log('NO SEMESTERS FOUND');
-        }
-      },
-      error: (err: HttpErrorResponse) => {
-        this.isLoading = false;
-        this.errorMessage = this.getErrorMessage(err);
-      }
+      this.loadStudentAndSemesters();
     });
   }
 
   onSemesterChange(): void {
-    this.onSemesterChangeSafe();
-    return;
-
     this.classes = [];
     this.selectedClassId = null;
-    this.gradeDetail = null;
+    this.gradeCompositions = [];
+    this.gradeDetails = [];
+    this.gradeSummary = null;
 
-    if (!this.selectedSemesterId) return;
+    if (this.selectedSemesterId === null || this.selectedSemesterId === undefined) {
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.loadGradeSummary();
 
     this.isLoadingClasses = true;
-    this.studentService.getClassesByStudentAndSemester(this.studentId, this.selectedSemesterId!).subscribe({
-      next: (res: any) => {
-        console.log('CLASSES API CATCH', res);
+    this.errorMessage = null;
+
+    this.studentService.getClassesByStudentAndSemester(this.studentId, this.selectedSemesterId).subscribe({
+      next: (res) => {
         this.isLoadingClasses = false;
-        let classList = [];
-        if (res && res.data && res.data.length > 0) {
-          classList = res.data;
-        } else if (Array.isArray(res) && res.length > 0) {
-          classList = res;
+        this.classes = res?.data ?? [];
+
+        if (this.classes.length > 0) {
+          const firstClass = this.classes[0];
+          const classId = Number(firstClass.courseClassId);
+          this.selectedClassId = classId;
+          this.loadGradeDataByClass(firstClass, classId);
+          return;
         }
 
-        this.classes = classList;
-        console.log('CLASSES ASSIGNED', this.classes);
-        if (this.classes.length > 0) {
-          this.selectedClassId = this.classes[0].courseClassId;
-          this.onClassChange();
-        }
+        this.cdr.detectChanges();
       },
       error: (err: HttpErrorResponse) => {
         this.isLoadingClasses = false;
         this.errorMessage = this.getErrorMessage(err);
+        this.cdr.detectChanges();
       }
     });
   }
 
   onClassChange(): void {
-    this.onClassChangeSafe();
-    return;
+    this.gradeCompositions = [];
+    this.gradeDetails = [];
 
-    this.gradeDetail = null;
-    if (!this.selectedClassId) return;
-
-    this.isLoadingGrade = true;
-    this.studentService.getGradeDetail(this.studentId, this.selectedClassId!).subscribe({
-      next: (res: any) => {
-        this.isLoadingGrade = false;
-        if (res && res.data) {
-          this.gradeDetail = res.data;
-        } else if (res && res.id) {
-          this.gradeDetail = res;
-        }
-      },
-      error: (err: HttpErrorResponse) => {
-        this.isLoadingGrade = false;
-        this.errorMessage = this.getErrorMessage(err);
-      }
-    });
-  }
-
-  getErrorMessage(err: HttpErrorResponse): string {
-    if (err.error && err.error.message) {
-      if (Array.isArray(err.error.message)) {
-        return err.error.message.join(', ');
-      }
-      return err.error.message;
+    if (this.selectedClassId === null || this.selectedClassId === undefined) {
+      this.cdr.detectChanges();
+      return;
     }
-    return 'Lỗi hệ thống, vui lòng thử lại sau.';
+
+    const classId = Number(this.selectedClassId);
+    const selectedClass = this.getSelectedClass();
+    if (!selectedClass) {
+      this.errorMessage = 'Không xác định được lớp học phần đang chọn.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.loadGradeDataByClass(selectedClass, classId);
   }
 
-  private loadStudentDataSafe(): void {
+  getSelectedClass(): ClassSubjectDTO | null {
+    if (this.selectedClassId === null || this.selectedClassId === undefined) {
+      return null;
+    }
+    const selectedId = Number(this.selectedClassId);
+    return this.classes.find((c) => Number(c.courseClassId) === selectedId) ?? null;
+  }
+
+  getSemesterLabel(semester: Semester): string {
+    const semesterName = semester?.semesterName ?? '';
+    const academicYear = semester?.academicYear ?? '';
+    return `${semesterName} - ${academicYear}`.trim();
+  }
+
+  getClassLabel(cls: ClassSubjectDTO): string {
+    const subjectName = cls?.subject?.subjectName ?? 'Chưa có môn';
+    const groupName = cls?.groupName ?? '--';
+    return `${subjectName} (${groupName})`;
+  }
+
+  getScoreByComposition(compositionId: number): number | null {
+    const grade = this.gradeDetails.find((g) => Number(g.gradeCompositionId) === Number(compositionId));
+    return grade ? grade.score : null;
+  }
+
+  calculateAverage(): string | null {
+    if (this.gradeCompositions.length === 0 || this.gradeDetails.length === 0) {
+      return null;
+    }
+
+    const scoreByComposition = new Map<number, number>();
+    this.gradeDetails.forEach((g) => scoreByComposition.set(Number(g.gradeCompositionId), g.score));
+
+    for (const composition of this.gradeCompositions) {
+      if (!scoreByComposition.has(Number(composition.id))) {
+        return null;
+      }
+    }
+
+    const total = this.gradeCompositions.reduce((sum, composition) => {
+      const score = scoreByComposition.get(Number(composition.id))!;
+      return sum + score * composition.weight;
+    }, 0);
+
+    return total.toFixed(1);
+  }
+
+  private loadStudentAndSemesters(): void {
     this.isLoading = true;
     this.errorMessage = null;
 
-    this.studentService.getStudent(this.studentId).subscribe({
-      next: (res: unknown) => {
-        const studentData = this.unwrapData<Student>(res);
-        if (studentData && studentData.id) {
-          this.student = studentData;
-          this.loadSemestersSafe();
-          this.cdr.detectChanges();
+    forkJoin({
+      studentRes: this.studentService.getStudent(this.studentId),
+      semestersRes: this.studentService.getSemestersByStudent(this.studentId),
+    }).subscribe({
+      next: ({ studentRes, semestersRes }) => {
+        this.isLoading = false;
+        this.student = studentRes?.data ?? null;
+        this.semesters = semestersRes?.data ?? [];
+
+        if (this.semesters.length > 0) {
+          this.selectedSemesterId = Number(this.semesters[0].id);
+          this.onSemesterChange();
           return;
         }
 
-        this.isLoading = false;
-        this.errorMessage = 'Khong doc duoc thong tin sinh vien tu response.';
         this.cdr.detectChanges();
       },
       error: (err: HttpErrorResponse) => {
@@ -202,80 +193,71 @@ export class StudentGradebook implements OnInit {
     });
   }
 
-  private loadSemestersSafe(): void {
-    this.studentService.getSemestersByStudent(this.studentId).subscribe({
-      next: (res: unknown) => {
-        this.isLoading = false;
-        this.semesters = this.normalizeList<Semester>(this.unwrapData(res));
-
-        if (this.semesters.length === 0) {
-          this.cdr.detectChanges();
-          return;
-        }
-
-        this.selectedSemesterId = this.semesters[0].id;
-        this.onSemesterChangeSafe();
-        this.cdr.detectChanges();
-      },
-      error: (err: HttpErrorResponse) => {
-        this.isLoading = false;
-        this.errorMessage = this.getErrorMessage(err);
-        this.cdr.detectChanges();
-      },
-    });
-  }
-
-  private onSemesterChangeSafe(): void {
-    this.classes = [];
-    this.selectedClassId = null;
-    this.gradeDetail = null;
-
-    if (!this.selectedSemesterId) {
-      return;
-    }
-
-    this.isLoadingClasses = true;
-    this.studentService.getClassesByStudentAndSemester(this.studentId, this.selectedSemesterId!).subscribe({
-      next: (res: unknown) => {
-        this.isLoadingClasses = false;
-        this.classes = this.normalizeList<ClassSubjectDTO>(this.unwrapData(res));
-
-        if (this.classes.length > 0) {
-          this.selectedClassId = this.classes[0].courseClassId;
-          this.onClassChangeSafe();
-        }
-        this.cdr.detectChanges();
-      },
-      error: (err: HttpErrorResponse) => {
-        this.isLoadingClasses = false;
-        this.errorMessage = this.getErrorMessage(err);
-        this.cdr.detectChanges();
-      },
-    });
-  }
-
-  private onClassChangeSafe(): void {
-    this.gradeDetail = null;
-    if (!this.selectedClassId) {
+  private loadGradeDataByClass(selectedClass: ClassSubjectDTO, classId: number): void {
+    const subjectId = this.extractSubjectId(selectedClass);
+    if (!subjectId) {
+      this.errorMessage = 'Không tìm thấy thông tin môn học của lớp học phần.';
+      this.cdr.detectChanges();
       return;
     }
 
     this.isLoadingGrade = true;
-    this.studentService.getGradeDetail(this.studentId, this.selectedClassId!).subscribe({
-      next: (res: unknown) => {
+    this.errorMessage = null;
+
+    forkJoin({
+      compositionsRes: this.subjectService.getGradeCompositionsBySubject(subjectId),
+      gradesRes: this.gradeService.getByStudentAndCourseClass(classId, this.studentId),
+    }).subscribe({
+      next: ({ compositionsRes, gradesRes }) => {
         this.isLoadingGrade = false;
-        const gradeData = this.unwrapData<FetchGradeDTO>(res);
-        if (gradeData && gradeData.id) {
-          this.gradeDetail = gradeData;
-        }
+        this.gradeCompositions = compositionsRes?.data ?? [];
+        this.gradeDetails = gradesRes?.data ?? [];
         this.cdr.detectChanges();
       },
       error: (err: HttpErrorResponse) => {
         this.isLoadingGrade = false;
         this.errorMessage = this.getErrorMessage(err);
         this.cdr.detectChanges();
-      },
+      }
     });
+  }
+
+  private loadGradeSummary(): void {
+    if (this.selectedSemesterId === null || this.selectedSemesterId === undefined) {
+      this.gradeSummary = null;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.isLoadingSummary = true;
+    this.studentService.getGradeSummary(this.studentId, this.selectedSemesterId).subscribe({
+      next: (res) => {
+        this.isLoadingSummary = false;
+        this.gradeSummary = res?.data ?? null;
+        this.cdr.detectChanges();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.isLoadingSummary = false;
+        this.gradeSummary = null;
+        this.errorMessage = this.getErrorMessage(err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private extractSubjectId(selectedClass: ClassSubjectDTO | null): number | null {
+    if (!selectedClass || !selectedClass.subject) {
+      return null;
+    }
+
+    const subject = selectedClass.subject as any;
+    const rawId = subject.subjectId ?? subject.id;
+    if (rawId === null || rawId === undefined) {
+      return null;
+    }
+
+    const numericId = Number(rawId);
+    return Number.isNaN(numericId) ? null : numericId;
   }
 
   private getStudentIdFromRoute(params: ParamMap): number | null {
@@ -292,58 +274,15 @@ export class StudentGradebook implements OnInit {
     return Number.isNaN(numericId) ? null : numericId;
   }
 
-  private unwrapData<T>(response: unknown): T | null {
-    if (response == null) {
-      return null;
-    }
-
-    if (Array.isArray(response)) {
-      return response as T;
-    }
-
-    if (typeof response !== 'object') {
-      return response as T;
-    }
-
-    const first = response as { data?: unknown };
-    if (first.data === undefined) {
-      return response as T;
-    }
-
-    if (first.data == null) {
-      return null;
-    }
-
-    if (typeof first.data === 'object' && !Array.isArray(first.data)) {
-      const second = first.data as { data?: unknown };
-      if (second.data !== undefined) {
-        return (second.data ?? first.data) as T;
+  private getErrorMessage(err: HttpErrorResponse): string {
+    if (err.error && err.error.message) {
+      if (Array.isArray(err.error.message)) {
+        return err.error.message.join(', ');
+      }
+      if (typeof err.error.message === 'string') {
+        return err.error.message;
       }
     }
-
-    return first.data as T;
-  }
-
-  private normalizeList<T>(payload: unknown): T[] {
-    if (Array.isArray(payload)) {
-      return payload;
-    }
-
-    if (payload && typeof payload === 'object' && Array.isArray((payload as { result?: unknown[] }).result)) {
-      return (payload as { result: T[] }).result;
-    }
-
-    return [];
-  }
-
-  calculateAverage(): string | null {
-    if (!this.gradeDetail) return null;
-
-    const { attendanceScore, midtermScore, test1Score, test2Score, finalScore } = this.gradeDetail;
-    const avg = (attendanceScore * 0.1) +
-      (midtermScore * 0.2) +
-      (((test1Score + test2Score) / 2) * 0.2) +
-      (finalScore * 0.5);
-    return avg.toFixed(1);
+    return 'Lỗi hệ thống, vui lòng thử lại sau.';
   }
 }

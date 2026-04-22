@@ -7,14 +7,13 @@
   </div>
 
   @if (submitError) {
-    <div class="alert-error-banner" role="alert">
-      <strong>Lỗi:</strong>
-      <span>{{ submitError }}</span>
-    </div>
+  <div class="alert-error-banner" role="alert">
+    <strong>Lỗi:</strong>
+    <span>{{ submitError }}</span>
+  </div>
   }
 
   <form [formGroup]="studentForm" (ngSubmit)="onSubmit()">
-    <!-- Avatar upload section -->
     <div class="avatar-upload-container">
       <div class="avatar-preview" [class.disabled]="isSubmitting" (click)="!isSubmitting && fileInput.click()">
         <img [src]="imagePreview || 'https://www.w3schools.com/howto/img_avatar.png'" alt="Avatar Preview">
@@ -27,30 +26,32 @@
 
     <div class="form-row">
       <div class="form-group half">
-        <label for="studentCode">Mã Sinh Viên</label>
+        <label for="studentCode">Mã sinh viên</label>
         <input
           type="text"
           id="studentCode"
           formControlName="studentCode"
           class="form-control"
-          [ngClass]="{'is-invalid': studentForm.get('studentCode')?.invalid && studentForm.get('studentCode')?.touched}"
-          placeholder="e.g. B22DCCN001">
+          [ngClass]="{ 'is-invalid': studentForm.get('studentCode')?.invalid && studentForm.get('studentCode')?.touched }"
+          placeholder="VD: B22DCCN001"
+        >
         @if (studentForm.get('studentCode')?.invalid && studentForm.get('studentCode')?.touched) {
-          <span class="error-text">Vui lòng điền MSV</span>
+        <span class="error-text">Vui lòng điền mã sinh viên</span>
         }
       </div>
 
       <div class="form-group half">
-        <label for="name">Họ và Tên</label>
+        <label for="name">Họ và tên</label>
         <input
           type="text"
           id="name"
           formControlName="name"
           class="form-control"
-          [ngClass]="{'is-invalid': studentForm.get('name')?.invalid && studentForm.get('name')?.touched}"
-          placeholder="Nhập họ tên đầy đủ">
+          [ngClass]="{ 'is-invalid': studentForm.get('name')?.invalid && studentForm.get('name')?.touched }"
+          placeholder="Nhập họ tên đầy đủ"
+        >
         @if (studentForm.get('name')?.invalid && studentForm.get('name')?.touched) {
-          <span class="error-text">Vui lòng nhập họ tên</span>
+        <span class="error-text">Vui lòng nhập họ tên</span>
         }
       </div>
     </div>
@@ -63,23 +64,20 @@
           id="email"
           formControlName="email"
           class="form-control"
-          [ngClass]="{'is-invalid': studentForm.get('email')?.invalid && studentForm.get('email')?.touched}"
-          placeholder="example@email.com">
+          [ngClass]="{ 'is-invalid': studentForm.get('email')?.invalid && studentForm.get('email')?.touched }"
+          placeholder="example@email.com"
+        >
         @if (studentForm.get('email')?.hasError('required') && studentForm.get('email')?.touched) {
-          <span class="error-text">Email không được để trống</span>
+        <span class="error-text">Email không được để trống</span>
         }
         @if (studentForm.get('email')?.hasError('email') && studentForm.get('email')?.touched) {
-          <span class="error-text">Email không đúng định dạng</span>
+        <span class="error-text">Email không đúng định dạng</span>
         }
       </div>
 
       <div class="form-group half">
         <label for="dob">Ngày sinh</label>
-        <input
-          type="date"
-          id="dob"
-          formControlName="dob"
-          class="form-control">
+        <input type="date" id="dob" formControlName="dob" class="form-control">
       </div>
     </div>
 
@@ -95,12 +93,52 @@
 
       <div class="form-group half">
         <label for="address">Địa chỉ</label>
-        <input
-          type="text"
-          id="address"
-          formControlName="address"
+        <input type="text" id="address" formControlName="address" class="form-control" placeholder="Nhập địa chỉ">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group half">
+        <label for="className">Lớp</label>
+        <input type="text" id="className" formControlName="className" class="form-control" placeholder="VD: D22CQCN01">
+      </div>
+
+      <div class="form-group half">
+        <label for="enrollmentYear">Năm nhập học</label>
+        <select
+          id="enrollmentYear"
+          formControlName="enrollmentYear"
           class="form-control"
-          placeholder="Nhập địa chỉ">
+          [class.enrollment-year-readonly]="isEditMode"
+          [ngClass]="{ 'is-invalid': studentForm.get('enrollmentYear')?.invalid && studentForm.get('enrollmentYear')?.touched }"
+        >
+          @for (year of enrollmentYearOptions; track year) {
+          <option [ngValue]="year">{{ year }}</option>
+          }
+        </select>
+        @if (studentForm.get('enrollmentYear')?.invalid && studentForm.get('enrollmentYear')?.touched) {
+        <span class="error-text">Vui lòng chọn năm nhập học hợp lệ</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group half">
+        <label for="majorId">Ngành học</label>
+        <select
+          id="majorId"
+          formControlName="majorId"
+          class="form-control"
+          [ngClass]="{ 'is-invalid': studentForm.get('majorId')?.invalid && studentForm.get('majorId')?.touched }"
+        >
+          <option [ngValue]="null" disabled>-- Chọn ngành học --</option>
+          @for (major of majors; track major.id) {
+          <option [ngValue]="major.id">{{ major.majorName }} ({{ major.majorCode }})</option>
+          }
+        </select>
+        @if (studentForm.get('majorId')?.invalid && studentForm.get('majorId')?.touched) {
+        <span class="error-text">Vui lòng chọn ngành học</span>
+        }
       </div>
     </div>
 
@@ -108,13 +146,13 @@
       <button
         type="submit"
         class="btn btn-primary"
-        [disabled]="(studentForm.pristine && !selectedFile && isEditMode) || isSubmitting"
+        [disabled]="(studentForm.pristine && !selectedFile && isEditMode) || studentForm.invalid || isSubmitting"
       >
         @if (isSubmitting) {
-          <span class="spinner" aria-hidden="true"></span>
-          <span>Đang xử lý...</span>
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Đang xử lý...</span>
         } @else {
-          {{ isEditMode ? 'Cập nhật sinh viên' : 'Lưu sinh viên' }}
+        {{ isEditMode ? 'Cập nhật sinh viên' : 'Lưu sinh viên' }}
         }
       </button>
     </div>

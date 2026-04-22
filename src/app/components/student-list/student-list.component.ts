@@ -15,6 +15,7 @@ import { StudentService } from '../../services/student.service';
 export class StudentListComponent implements OnInit {
   students: Student[] = [];
   searchKeyword = '';
+  searchBy: 'studentCode' | 'name' | 'email' = 'studentCode';
   sortField = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
@@ -31,41 +32,44 @@ export class StudentListComponent implements OnInit {
   }
 
   loadStudents(): void {
-    let filter = '';
-    if (this.searchKeyword.trim()) {
-      const keyword = this.searchKeyword.trim();
-      filter = `name ~~ '${keyword}' or studentCode ~~ '${keyword}'`;
-    }
+    const filter = this.buildSearchFilter();
 
     let sort = '';
     if (this.sortField) {
       sort = `${this.sortField},${this.sortDirection}`;
     }
 
-    this.studentService.getStudents({
-      filter,
-      sort,
-      page: this.currentPage,
-      size: this.pageSize
-    }).subscribe({
-      next: (res) => {
-        const list = res?.data?.result ?? [];
-        this.students = [...list];
+    this.studentService
+      .getStudents({
+        filter,
+        sort,
+        page: this.currentPage,
+        size: this.pageSize
+      })
+      .subscribe({
+        next: (res) => {
+          const list = res?.data?.result ?? [];
+          this.students = [...list];
 
-        if (res?.data?.meta) {
-          const meta = res.data.meta;
-          this.totalItems = meta.total;
-          this.totalPages = meta.pages;
-          this.currentPage = meta.page;
-        }
+          if (res?.data?.meta) {
+            const meta = res.data.meta;
+            this.totalItems = meta.total;
+            this.totalPages = meta.pages;
+            this.currentPage = meta.page;
+          }
 
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error loading students', err)
-    });
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Error loading students', err)
+      });
   }
 
   onSearch(): void {
+    this.currentPage = 1;
+    this.loadStudents();
+  }
+
+  onSearchByChange(): void {
     this.currentPage = 1;
     this.loadStudents();
   }
@@ -94,6 +98,12 @@ export class StudentListComponent implements OnInit {
     this.loadStudents();
   }
 
+  getSearchPlaceholder(): string {
+    if (this.searchBy === 'email') return 'Nhập email cần tìm...';
+    if (this.searchBy === 'name') return 'Nhập họ tên cần tìm...';
+    return 'Nhập mã sinh viên cần tìm...';
+  }
+
   getPagesArray(): number[] {
     const pages = [];
     const maxVisiblePages = 5;
@@ -113,6 +123,14 @@ export class StudentListComponent implements OnInit {
   getSortIcon(field: string): string {
     if (this.sortField !== field) return '⇅';
     return this.sortDirection === 'asc' ? '↑' : '↓';
+  }
+
+  private buildSearchFilter(): string {
+    const keyword = this.searchKeyword.trim();
+    if (!keyword) return '';
+
+    const escapedKeyword = keyword.replace(/'/g, "''");
+    return `${this.searchBy} ~~ '${escapedKeyword}'`;
   }
 
   deleteStudent(id: number | undefined): void {

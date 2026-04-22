@@ -35,6 +35,47 @@ export interface Subject {
   credit: number;
 }
 
+export interface GradeCompositionDTO {
+  id: number;
+  gradeItemName: string;
+  weight: number;
+}
+
+export interface GradeEntryDetailDTO {
+  gradeCompositionId: number;
+  gradeItemName: string;
+  weight: number;
+  score: number;
+}
+
+export interface GradeSummaryDTO {
+  studentId: number;
+  semesterId: number;
+  semesterGpa: number;
+  cumulativeCpa: number;
+}
+
+export interface GradeBatchRequestDTO {
+  courseClassId: number;
+  studentId: number;
+  scores: Array<{
+    gradeCompositionId: number;
+    score: number;
+  }>;
+}
+
+export interface GradeBatchResDTO {
+  studentId: number;
+  courseClassId: number;
+  savedCount: number;
+}
+
+export interface Major {
+  id: number;
+  majorCode: string;
+  majorName: string;
+}
+
 export interface ClassSubjectDTO {
   courseClassId: number;
   groupName: string;
